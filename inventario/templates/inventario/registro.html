@@ -1,0 +1,19 @@
+{% extends 'inventario/base.html' %}
+
+{% block title %}Registrar Inventario{% endblock %}
+
+{% block content %}
+<h2>Registrar Nuevo Ítem</h2>
+<form method="post">
+    {% csrf_token %}
+    <label>Nombre del ítem:</label>
+    <input type="text" name="nombre" required><br>
+    <label>Descripción:</label>
+    <textarea name="descripcion"></textarea><br>
+    <label>Cantidad:</label>
+    <input type="number" name="cantidad" min="1" required><br>
+    <label>Ubicación:</label>
+    <input type="text" name="ubicacion"><br>
+    <button type="submit">Registrar</button>
+</form>
+{% endblock %}
