@@ -1,18 +1,21 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Sistema Inventario{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'inventario/style.css' %}">
 </head>
+
 <body>
     <header>
         <h1>Maestranza Unidos S.A.</h1>
         <nav>
             <a href="{% url 'index' %}">Inicio</a> |
             <a href="{% url 'login' %}">Iniciar sesión</a> |
-            <a href="{% url 'registro' %}">Registrar Ítem</a>
+            <a href="{% url 'registro' %}">Registrar Ítem</a> |
+            <a href="{% url 'agregar_producto' %}">Agregar nuevo producto</a>
         </nav>
     </header>
 
@@ -21,7 +24,9 @@
     </main>
 
     <footer>
-        <p>&copy; 2025 Maestranza Unidos S.A.</p>
+        © Maestranzas Unidos S.A.
     </footer>
+
 </body>
+
 </html>
