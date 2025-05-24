@@ -1,0 +1,25 @@
+
+{% extends 'inventario/base.html' %}
+
+{% block title %}
+  {% if editar %}Editar Producto{% else %}Registrar Producto{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>{% if editar %}Editar Producto{% else %}Registrar Producto{% endif %}</h2>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit" class="btn btn-primary">
+      {% if editar %}Guardar Cambios{% else %}Guardar Producto{% endif %}
+    </button>
+
+    <a href="{% url 'producto_crud' %}" class="btn btn-secondary">
+      {% if editar %}Volver a la Lista{% else %}Ver Productos{% endif %}
+    </a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'inventario/base.html' %}
+
+{% block title %}Lista de Productos{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>Lista de Productos</h2>
+
+  <a href="{% url 'registro_producto' %}" class="btn btn-primary mb-3">Agregar Producto</a>
+
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Precio</th>
+        <th>Descripción</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for producto in productos %}
+      <tr>
+        <td>{{ producto.nombre }}</td>
+        <td>{{ producto.precio }}</td>
+        <td>{{ producto.descripcion }}</td>
+        <td>
+          <a href="{% url 'editar_producto' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
+          <a href="?delete={{ producto.id }}" class="btn btn-danger btn-sm"
+             onclick="return confirm('¿Eliminar este producto?');">Eliminar</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" class="text-center">No hay productos registrados.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

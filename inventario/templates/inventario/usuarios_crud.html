@@ -1,0 +1,85 @@
+{% extends 'inventario/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Usuarios{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Gestión de Usuarios</h2>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      {% if editar %}Editar Usuario: {{ usuario.username }}{% else %}Crear Nuevo Usuario{% endif %}
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group mb-3">
+          <label for="id_username">Nombre de Usuario</label>
+          {{ form.username }}
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="id_email">Correo Electrónico</label>
+          {{ form.email }}
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="id_first_name">Nombre</label>
+          {{ form.first_name }}
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="id_last_name">Apellido</label>
+          {{ form.last_name }}
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="id_password">Contraseña</label>
+          {{ form.password }}
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="id_password_confirm">Confirmar Contraseña</label>
+          {{ form.password_confirm }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          {% if editar %}Guardar Cambios{% else %}Crear Usuario{% endif %}
+        </button>
+
+        {% if editar %}
+          <a href="{% url 'usuarios_crud' %}" class="btn btn-secondary">Cancelar</a>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <h4>Lista de Usuarios</h4>
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Nombre de Usuario</th>
+        <th>Email</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in usuarios %}
+      <tr>
+        <td>{{ u.username }}</td>
+        <td>{{ u.email }}</td>
+        <td>
+          <a href="?edit={{ u.id }}" class="btn btn-warning btn-sm">Editar</a>
+          <a href="?delete={{ u.id }}" class="btn btn-danger btn-sm"
+             onclick="return confirm('¿Estás seguro de que quieres eliminar este usuario?');">Eliminar</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3" class="text-center">No hay usuarios registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

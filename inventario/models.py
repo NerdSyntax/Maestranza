@@ -1,8 +1,5 @@
 from django.db import models
 
-# Create your models here.
-
-
 class Proveedor(models.Model):
     nombre = models.CharField(max_length=100)
     contacto = models.CharField(max_length=100, blank=True)
@@ -21,17 +18,11 @@ class CategoriaProducto(models.Model):
 
 class Producto(models.Model):
     nombre = models.CharField(max_length=100)
-    numero_serie = models.CharField(max_length=50, unique=True)
-    categoria = models.ForeignKey(CategoriaProducto, on_delete=models.SET_NULL, null=True, blank=True)
-    proveedor = models.ForeignKey(Proveedor, on_delete=models.SET_NULL, null=True, blank=True)
-    ubicacion = models.CharField(max_length=100)
-    cantidad_en_stock = models.PositiveIntegerField(default=0)
-    lote = models.CharField(max_length=50, blank=True)
-    fecha_vencimiento = models.DateField(null=True, blank=True)
-    precio_compra = models.DecimalField(max_digits=10, decimal_places=2)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    descripcion = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.nombre} ({self.numero_serie})"
+        return self.nombre
 
 class MovimientoInventario(models.Model):
     TIPO_CHOICES = [

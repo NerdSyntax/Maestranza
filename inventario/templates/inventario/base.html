@@ -21,14 +21,16 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav">
 
-      <li><a href="{% url 'index' %}">Inicio</a></li>
-      <li><a href="{% url 'login' %}">Iniciar Sesión</a></li>
-      <li><a href="{% url 'registro_usuario' %}">Registrarse</a></li>
-      <li><a href="{% url 'olvidar_contra' %}">¿Olvidaste tu contraseña?</a></li>
-      <li><a href="{% url 'registro' %}">Registrar Ítem</a></li>
-      <li><a href="{% url 'lista_productos' %}">Lista de Productos</a></li>
-      <li><a href="{% url 'agregar_producto' %}">Agregar Producto</a></li>
-    
+        <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'registro_usuario' %}">Registrarse</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'olvidar_contra' %}">¿Olvidaste tu contraseña?</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'usuarios_crud' %}">Usuarios</a></li>
+
+        <!-- NUEVOS ENLACES -->
+        <li class="nav-item"><a class="nav-link" href="{% url 'producto_crud' %}">CRUD Productos</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'registro_producto' %}">Registrar Producto</a></li>
+
       </ul>
     </div>
   </div>
