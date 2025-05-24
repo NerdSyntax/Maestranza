@@ -1,0 +1,26 @@
+{% extends 'inventario/base.html' %}
+{% load static %}
+
+{% block title %}Olvidé mi contraseña{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'inventario/css/olvidar_contra.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>Recuperar contraseña</h2>
+  <p>Ingresa tu correo electrónico para recibir un enlace de restablecimiento.</p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="email" class="form-label">Correo electrónico:</label>
+      <input type="email" name="email" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Enviar enlace</button>
+       <div class="mt-3 text-center">
+        <a href="{% url 'index' %}">inicio</a><br>
+      </div>
+  </form>
+</div>
+{% endblock %}

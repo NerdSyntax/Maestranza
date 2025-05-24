@@ -1,0 +1,30 @@
+{% extends "inventario/base.html" %}
+{% load static %}
+
+{% block title %}Registrar Inventario{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'inventario/css/producto_form.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2>Registrar Nuevo Ítem</h2>
+  <form method="post">
+    {% csrf_token %}
+    <label class="form-label" for="nombre">Nombre del ítem:</label>
+    <input type="text" id="nombre" name="nombre" class="form-control" required>
+
+    <label class="form-label" for="descripcion">Descripción:</label>
+    <textarea id="descripcion" name="descripcion" class="form-control"></textarea>
+
+    <label class="form-label" for="cantidad">Cantidad:</label>
+    <input type="number" id="cantidad" name="cantidad" min="1" class="form-control" required>
+
+    <label class="form-label" for="ubicacion">Ubicación:</label>
+    <input type="text" id="ubicacion" name="ubicacion" class="form-control">
+
+    <button type="submit" class="btn-primary">Registrar</button>
+  </form>
+</div>
+{% endblock %}
