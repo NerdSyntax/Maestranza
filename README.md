@@ -6,3 +6,12 @@ Despues instalar el archivo requirements.txt: pip install -r requirements.txt
 Superuser creado
 USER: admin
 PASS: admin123
+
+
+-- COMANDOS PARA INCIAR PROGRAMA -- 
+
+python -m venv env
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\env\Scripts\Activate.ps1
+pip install django
+python -m pip install Pillow
