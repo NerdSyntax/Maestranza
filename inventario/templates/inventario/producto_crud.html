@@ -14,6 +14,7 @@
         <th>Nombre</th>
         <th>Precio</th>
         <th>Descripción</th>
+        <th>Fecha de Vencimiento</th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -21,8 +22,21 @@
       {% for producto in productos %}
       <tr>
         <td>{{ producto.nombre }}</td>
-        <td>{{ producto.precio }}</td>
+        <td>${{ producto.precio }}</td>
         <td>{{ producto.descripcion }}</td>
+        <td>
+          {% if producto.fecha_vencimiento %}
+            {% if producto.fecha_vencimiento < today %}
+              <span class="badge bg-danger">Vencido ({{ producto.fecha_vencimiento|date:"d/m/Y" }})</span>
+            {% elif producto.fecha_vencimiento <= today_plus_7 %}
+              <span class="badge bg-warning text-dark">Por vencer ({{ producto.fecha_vencimiento|date:"d/m/Y" }})</span>
+            {% else %}
+              <span class="badge bg-success">{{ producto.fecha_vencimiento|date:"d/m/Y" }}</span>
+            {% endif %}
+          {% else %}
+            <span class="text-muted">Sin fecha</span>
+          {% endif %}
+        </td>
         <td>
           <a href="{% url 'editar_producto' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
           <a href="?delete={{ producto.id }}" class="btn btn-danger btn-sm"
@@ -31,7 +45,7 @@
       </tr>
       {% empty %}
       <tr>
-        <td colspan="4" class="text-center">No hay productos registrados.</td>
+        <td colspan="5" class="text-center">No hay productos registrados.</td>
       </tr>
       {% endfor %}
     </tbody>

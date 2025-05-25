@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login  # <-- ESTA LÍNEA ES CLAVE
 from .models import Producto
 from .forms import ProductoForm, UsuarioForm
-
+from datetime import date, timedelta
 def tienda_view(request):
     return render(request, 'inventario/tienda.html')
 # Página de inicio
@@ -59,8 +59,14 @@ def olvidar_contra(request):
 # Vista para listar productos (opcional)
 def lista_productos(request):
     productos = Producto.objects.all()
-    return render(request, 'inventario/lista_productos.html', {'productos': productos})
+    today = date.today()
+    today_plus_7 = today + timedelta(days=7)
 
+    return render(request, 'inventario/lista_productos.html', {
+        'productos': productos,
+        'today': today,
+        'today_plus_7': today_plus_7,
+    })
 # Formulario para registrar productos
 def registro_producto(request):
     if request.method == 'POST':

@@ -1,12 +1,26 @@
 from django import forms
 from django.contrib.auth.models import User
 from .models import Producto
+from datetime import date
 
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
         fields = '__all__'
+        widgets = {
+            'fecha_vencimiento': forms.DateInput(attrs={'type': 'date'}),
+        }
 
+    def __init__(self, *args, **kwargs):
+        super(ProductoForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+
+    def clean_fecha_vencimiento(self):
+        fecha = self.cleaned_data.get('fecha_vencimiento')
+        if fecha and fecha < date.today():
+            raise forms.ValidationError("La fecha de vencimiento no puede estar en el pasado.")
+        return fecha
 class UsuarioForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, required=False)
     password_confirm = forms.CharField(widget=forms.PasswordInput, required=False, label="Confirmar contraseña")
