@@ -37,3 +37,6 @@ class MovimientoInventario(models.Model):
 
     def __str__(self):
         return f"{self.tipo.title()} - {self.producto.nombre} - {self.cantidad}"
+    
+
+

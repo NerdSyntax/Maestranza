@@ -17,4 +17,6 @@ urlpatterns = [
     path('productos/editar/<int:producto_id>/', views.editar_producto, name='editar_producto'),
     # CRUD de usuarios
     path('usuarios/', views.usuarios_crud, name='usuarios_crud'),
+    path('carrito/', views.ver_carrito, name='ver_carrito'),
+
 ]

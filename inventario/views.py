@@ -158,3 +158,8 @@ def login_view(request):
             messages.error(request, 'Usuario o contraseña incorrectos.')
 
     return render(request, 'inventario/login.html')
+
+# --
+def ver_carrito(request):
+    return render(request, 'inventario/carrito.html')
+
