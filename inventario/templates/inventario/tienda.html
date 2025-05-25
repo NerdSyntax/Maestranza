@@ -1,0 +1,33 @@
+{% extends 'inventario/base.html' %}
+{% load static %}
+
+{% block title %}Tienda{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'inventario/css/tienda.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Catálogo de Herramientas</h1>
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+  {% for producto in productos %}
+  <div class="col">
+    <div class="card product-card">
+      {% if producto.imagen %}
+        <img src="{{ producto.imagen.url }}" class="card-img-top product-image" alt="{{ producto.nombre }}">
+      {% else %}
+        <img src="https://via.placeholder.com/300x200" class="card-img-top product-image" alt="{{ producto.nombre }}">
+      {% endif %}
+      <div class="card-body">
+        <h5 class="card-title">{{ producto.nombre }}</h5>
+        <p class="card-text">{{ producto.descripcion }}</p>
+        <p class="text-primary fw-bold">${{ producto.precio }}</p>
+        <a href="#" class="btn btn-outline-primary w-100">Agregar al carrito</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script src="{% static 'inventario/js/tienda.js' %}"></script>
+{% endblock %}

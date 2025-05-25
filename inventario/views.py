@@ -2,9 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login  # <-- ESTA LÍNEA ES CLAVE
 from .models import Producto
 from .forms import ProductoForm, UsuarioForm
 
+def tienda_view(request):
+    return render(request, 'inventario/tienda.html')
 # Página de inicio
 def index(request):
     return render(request, 'inventario/index.html')
@@ -60,7 +64,7 @@ def lista_productos(request):
 # Formulario para registrar productos
 def registro_producto(request):
     if request.method == 'POST':
-        form = ProductoForm(request.POST)
+        form = ProductoForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             return redirect('producto_crud')
@@ -135,3 +139,22 @@ def usuarios_crud(request):
         'editar': editar,
         'usuario': usuario
     })
+@login_required
+def tienda_view(request):
+    productos = Producto.objects.all()
+    return render(request, 'inventario/tienda.html', {'productos': productos})
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('tienda')  # Redirige directamente a la tienda
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+
+    return render(request, 'inventario/login.html')

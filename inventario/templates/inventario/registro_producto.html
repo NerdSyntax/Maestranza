@@ -1,4 +1,3 @@
-
 {% extends 'inventario/base.html' %}
 
 {% block title %}
@@ -9,7 +8,7 @@
 <div class="container mt-5">
   <h2>{% if editar %}Editar Producto{% else %}Registrar Producto{% endif %}</h2>
 
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">  <!-- ¡IMPORTANTE! -->
     {% csrf_token %}
     {{ form.as_p }}
 
