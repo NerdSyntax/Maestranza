@@ -15,6 +15,7 @@
         <th>Precio</th>
         <th>Descripción</th>
         <th>Fecha de Vencimiento</th>
+        <th>Stock</th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -38,6 +39,13 @@
           {% endif %}
         </td>
         <td>
+          {% if producto.stock <= producto.stock_minimo %}
+            <span class="badge bg-danger">Bajo ({{ producto.stock }})</span>
+          {% else %}
+            <span class="badge bg-success">{{ producto.stock }}</span>
+          {% endif %}
+        </td>
+        <td>
           <a href="{% url 'editar_producto' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
           <a href="?delete={{ producto.id }}" class="btn btn-danger btn-sm"
              onclick="return confirm('¿Eliminar este producto?');">Eliminar</a>
@@ -45,7 +53,7 @@
       </tr>
       {% empty %}
       <tr>
-        <td colspan="5" class="text-center">No hay productos registrados.</td>
+        <td colspan="6" class="text-center">No hay productos registrados.</td>
       </tr>
       {% endfor %}
     </tbody>

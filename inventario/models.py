@@ -21,7 +21,9 @@ class Producto(models.Model):
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion = models.TextField(blank=True)
     imagen = models.ImageField(upload_to='productos/', blank=True, null=True)
-    fecha_vencimiento = models.DateField(null=True, blank=True)  # ✅ CAMPO NUEVO
+    fecha_vencimiento = models.DateField(null=True, blank=True)
+    stock = models.PositiveIntegerField(default=0)  # ✅ nuevo
+    stock_minimo = models.PositiveIntegerField(default=1)  # ✅ nuevo
 
     def __str__(self):
         return self.nombre
