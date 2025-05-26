@@ -3,30 +3,50 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login  # <-- ESTA LÍNEA ES CLAVE
-from .models import Producto, HistorialPrecio
-from .forms import ProductoForm, UsuarioForm
-from datetime import date, timedelta
-from .models import MovimientoInventario
+from django.contrib.auth import authenticate, login
 from django.views.decorators.http import require_POST
-from .forms import MovimientoInventarioForm
+from datetime import date, timedelta
+
+from .models import (
+    Producto,
+    HistorialPrecio,
+    MovimientoInventario,
+    CategoriaProducto,  # ✅ ESTE FALTABA
+)
+
+from .forms import (
+    ProductoForm,
+    UsuarioForm,
+    MovimientoInventarioForm,
+)
 
 
-def tienda_view(request):
-    return render(request, 'inventario/tienda.html')
-# Página de inicio
 def index(request):
     return render(request, 'inventario/index.html')
 
-# Formulario de login (sin lógica de autenticación todavía)
+
 def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('tienda')
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+
     return render(request, 'inventario/login.html')
 
-# Página para registrar un ítem de inventario (puede ser temporal)
-def registro_inventario(request):
-    return render(request, 'inventario/registro_item.html')
 
-# Registro individual de usuario (fuera del CRUD)
+@login_required
+def tienda_view(request):
+    productos = Producto.objects.all()
+    return render(request, 'inventario/tienda.html', {'productos': productos})
+
+
 def registro_usuario(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -55,22 +75,28 @@ def registro_usuario(request):
                 return render(request, 'inventario/registro_usuario.html', {
                     'error': "El nombre de usuario ya existe."
                 })
+
     return render(request, 'inventario/registro_usuario.html')
 
-# Vista visual para olvidar contraseña (puedes implementarla luego)
+
 def olvidar_contra(request):
     return render(request, 'inventario/olvidar_contra.html')
 
-# Vista para listar productos (opcional)
+
+def registro_inventario(request):
+    return render(request, 'inventario/registro_item.html')
+
+
 def lista_productos(request):
     categoria_id = request.GET.get('categoria')
     categorias = CategoriaProducto.objects.order_by('nombre')
     productos = Producto.objects.all()
-    today = date.today()
-    today_plus_7 = today + timedelta(days=7)
 
     if categoria_id:
         productos = productos.filter(categoria_id=categoria_id)
+
+    today = date.today()
+    today_plus_7 = today + timedelta(days=7)
 
     return render(request, 'inventario/lista_productos.html', {
         'productos': productos,
@@ -79,7 +105,30 @@ def lista_productos(request):
         'today': today,
         'today_plus_7': today_plus_7,
     })
-# Formulario para registrar productos
+
+
+def producto_crud(request):
+    categoria_id = request.GET.get('categoria')
+    categorias = CategoriaProducto.objects.order_by('nombre')
+    productos = Producto.objects.all()
+
+    if categoria_id:
+        productos = productos.filter(categoria_id=categoria_id)
+
+    if 'delete' in request.GET:
+        producto = get_object_or_404(Producto, pk=request.GET['delete'])
+        producto.delete()
+        return redirect('producto_crud')
+
+    return render(request, 'inventario/producto_crud.html', {
+        'productos': productos,
+        'categorias': categorias,
+        'categoria_seleccionada': int(categoria_id) if categoria_id else None,
+        'today': date.today(),
+        'today_plus_7': date.today() + timedelta(days=7),
+    })
+
+
 def registro_producto(request):
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES)
@@ -91,16 +140,6 @@ def registro_producto(request):
         form = ProductoForm()
     return render(request, 'inventario/registro_producto.html', {'form': form})
 
-# Vista para mostrar lista de productos y eliminar (CRUD parcial)
-def producto_crud(request):
-    productos = Producto.objects.all()
-
-    if 'delete' in request.GET:
-        producto = get_object_or_404(Producto, pk=request.GET['delete'])
-        producto.delete()
-        return redirect('producto_crud')
-
-    return render(request, 'inventario/producto_crud.html', {'productos': productos})
 
 def editar_producto(request, producto_id):
     producto = get_object_or_404(Producto, pk=producto_id)
@@ -123,7 +162,7 @@ def editar_producto(request, producto_id):
         'producto': producto
     })
 
-# CRUD de usuarios (crear, editar, eliminar, listar)
+
 def usuarios_crud(request):
     editar = False
     usuario = None
@@ -162,35 +201,11 @@ def usuarios_crud(request):
         'editar': editar,
         'usuario': usuario
     })
-@login_required
-def tienda_view(request):
-    productos = Producto.objects.all()
-    return render(request, 'inventario/tienda.html', {'productos': productos})
-
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            login(request, user)
-            return redirect('tienda')  # Redirige directamente a la tienda
-        else:
-            messages.error(request, 'Usuario o contraseña incorrectos.')
-
-    return render(request, 'inventario/login.html')
-
-# --
-def ver_carrito(request):
-    return render(request, 'inventario/carrito.html')
-
 
 
 def historial_precios_producto(request, producto_id):
     producto = get_object_or_404(Producto, pk=producto_id)
-    historial = producto.historial_precios.all().order_by('-fecha')  # del más nuevo al más antiguo
+    historial = producto.historial_precios.all().order_by('-fecha')
     return render(request, 'inventario/historial_precios.html', {
         'producto': producto,
         'historial': historial
@@ -202,8 +217,6 @@ def registrar_movimiento(request):
         form = MovimientoInventarioForm(request.POST)
         if form.is_valid():
             movimiento = form.save()
-
-            # Actualizar stock del producto
             if movimiento.tipo == 'entrada':
                 movimiento.producto.stock += movimiento.cantidad
             elif movimiento.tipo == 'salida':
@@ -216,9 +229,12 @@ def registrar_movimiento(request):
         form = MovimientoInventarioForm()
     return render(request, 'inventario/registrar_movimiento.html', {'form': form})
 
+
 def listar_movimientos(request):
     movimientos = MovimientoInventario.objects.all().order_by('-fecha')
     return render(request, 'inventario/listar_movimientos.html', {'movimientos': movimientos})
+
+
 @require_POST
 def registrar_movimiento_directo(request, producto_id):
     producto = get_object_or_404(Producto, id=producto_id)
@@ -243,3 +259,7 @@ def registrar_movimiento_directo(request, producto_id):
         messages.error(request, "Error al registrar movimiento.")
 
     return redirect('producto_crud')
+
+
+def ver_carrito(request):
+    return render(request, 'inventario/carrito.html')
