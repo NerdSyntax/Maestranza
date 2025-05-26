@@ -18,5 +18,6 @@ urlpatterns = [
     # CRUD de usuarios
     path('usuarios/', views.usuarios_crud, name='usuarios_crud'),
     path('carrito/', views.ver_carrito, name='ver_carrito'),
+    path('productos/historial/<int:producto_id>/', views.historial_precios_producto, name='historial_precios'),
 
 ]

@@ -4,9 +4,10 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login  # <-- ESTA LÍNEA ES CLAVE
-from .models import Producto
+from .models import Producto, HistorialPrecio
 from .forms import ProductoForm, UsuarioForm
 from datetime import date, timedelta
+from .models import HistorialPrecio
 def tienda_view(request):
     return render(request, 'inventario/tienda.html')
 # Página de inicio
@@ -72,7 +73,8 @@ def registro_producto(request):
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            HistorialPrecio.objects.create(producto=producto, precio=producto.precio)
             return redirect('producto_crud')
     else:
         form = ProductoForm()
@@ -91,11 +93,14 @@ def producto_crud(request):
 
 def editar_producto(request, producto_id):
     producto = get_object_or_404(Producto, pk=producto_id)
+    precio_anterior = producto.precio
 
     if request.method == 'POST':
-        form = ProductoForm(request.POST, instance=producto)
+        form = ProductoForm(request.POST, request.FILES, instance=producto)
         if form.is_valid():
-            form.save()
+            producto_actualizado = form.save()
+            if producto_actualizado.precio != precio_anterior:
+                HistorialPrecio.objects.create(producto=producto_actualizado, precio=producto_actualizado.precio)
             messages.success(request, "Producto modificado exitosamente.")
             return redirect('producto_crud')
     else:
@@ -106,6 +111,7 @@ def editar_producto(request, producto_id):
         'editar': True,
         'producto': producto
     })
+
 # CRUD de usuarios (crear, editar, eliminar, listar)
 def usuarios_crud(request):
     editar = False
@@ -169,3 +175,12 @@ def login_view(request):
 def ver_carrito(request):
     return render(request, 'inventario/carrito.html')
 
+
+
+def historial_precios_producto(request, producto_id):
+    producto = get_object_or_404(Producto, pk=producto_id)
+    historial = producto.historial_precios.all().order_by('-fecha')  # del más nuevo al más antiguo
+    return render(request, 'inventario/historial_precios.html', {
+        'producto': producto,
+        'historial': historial
+    })

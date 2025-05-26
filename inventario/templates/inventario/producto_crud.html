@@ -49,6 +49,36 @@
           <a href="{% url 'editar_producto' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
           <a href="?delete={{ producto.id }}" class="btn btn-danger btn-sm"
              onclick="return confirm('¿Eliminar este producto?');">Eliminar</a>
+          <button class="btn btn-info btn-sm" data-bs-toggle="collapse" data-bs-target="#historial{{ producto.id }}">Historial</button>
+        </td>
+      </tr>
+      <tr class="collapse" id="historial{{ producto.id }}">
+        <td colspan="6">
+          <strong>Historial de Precios:</strong>
+          {% if producto.historial_precios.all %}
+          <table class="table table-sm table-bordered mt-2">
+            <thead>
+              <tr>
+                <th>Precio</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for h in producto.historial_precios.all|dictsortreversed:"fecha" %}
+              <tr>
+                <td>${{ h.precio }}</td>
+                <td>{{ h.fecha|date:"d/m/Y H:i" }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="2">No hay historial.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p class="text-muted">No hay historial disponible.</p>
+          {% endif %}
         </td>
       </tr>
       {% empty %}
