@@ -8,3 +8,4 @@ admin.site.register(Proveedor)
 admin.site.register(CategoriaProducto)
 admin.site.register(Producto)
 admin.site.register(MovimientoInventario)
+

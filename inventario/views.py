@@ -63,12 +63,19 @@ def olvidar_contra(request):
 
 # Vista para listar productos (opcional)
 def lista_productos(request):
+    categoria_id = request.GET.get('categoria')
+    categorias = CategoriaProducto.objects.order_by('nombre')
     productos = Producto.objects.all()
     today = date.today()
     today_plus_7 = today + timedelta(days=7)
 
+    if categoria_id:
+        productos = productos.filter(categoria_id=categoria_id)
+
     return render(request, 'inventario/lista_productos.html', {
         'productos': productos,
+        'categorias': categorias,
+        'categoria_seleccionada': int(categoria_id) if categoria_id else None,
         'today': today,
         'today_plus_7': today_plus_7,
     })
