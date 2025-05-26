@@ -71,15 +71,22 @@
         </td>
       </tr>
 
+      <!-- Detalles -->
       <tr class="collapse" id="historial{{ producto.id }}">
         <td colspan="7">
+
+          <!-- Historial de Precios -->
           <strong>Historial de Precios:</strong>
-          {% if producto.historial_precios.all %}
           <table class="table table-sm table-bordered mt-2">
             <thead>
               <tr>
                 <th>Precio</th>
                 <th>Fecha</th>
+                <th>Usuario</th>
+                <th>Rol</th>
+                {% if request.user.groups.first.name == 'Administrador' %}
+                <th>Acción</th>
+                {% endif %}
               </tr>
             </thead>
             <tbody>
@@ -87,18 +94,31 @@
               <tr>
                 <td>${{ h.precio }}</td>
                 <td>{{ h.fecha|date:"d/m/Y H:i" }}</td>
+                <td>
+                  {% if h.usuario %}
+                    {{ h.usuario.get_full_name|default:h.usuario.username }}
+                  {% else %}
+                    <em class="text-muted">Desconocido</em>
+                  {% endif %}
+                </td>
+                <td>{{ h.rol|default:"-" }}</td>
+                {% if request.user.groups.first.name == 'Administrador' %}
+                <td>
+                  <a href="{% url 'eliminar_historial_precio' h.id %}" class="btn btn-danger btn-sm"
+                     onclick="return confirm('¿Eliminar este historial de precio?');">🗑</a>
+                </td>
+                {% endif %}
               </tr>
               {% empty %}
-              <tr><td colspan="2">No hay historial.</td></tr>
+              <tr><td colspan="5">No hay historial.</td></tr>
               {% endfor %}
             </tbody>
           </table>
-          {% endif %}
 
           <hr>
 
+          <!-- Registrar Movimiento -->
           <strong>Registrar Movimiento de Inventario:</strong>
-          {% if producto.id %}
           <form method="post" action="{% url 'registrar_movimiento_directo' producto.id %}" class="row g-2 mt-2">
             {% csrf_token %}
             <div class="col-md-2">
@@ -118,10 +138,8 @@
               <button type="submit" class="btn btn-sm btn-success">Registrar</button>
             </div>
           </form>
-          {% else %}
-            <p class="text-danger">Error: producto sin ID, no se puede registrar movimiento.</p>
-          {% endif %}
 
+          <!-- Últimos Movimientos -->
           <strong class="mt-4 d-block">Últimos Movimientos:</strong>
           <table class="table table-sm table-bordered mt-2">
             <thead>
@@ -130,6 +148,11 @@
                 <th>Cantidad</th>
                 <th>Motivo</th>
                 <th>Fecha</th>
+                <th>Usuario</th>
+                <th>Rol</th>
+                {% if request.user.groups.first.name == 'Administrador' %}
+                <th>Acción</th>
+                {% endif %}
               </tr>
             </thead>
             <tbody>
@@ -139,20 +162,39 @@
                 <td>{{ mov.cantidad }}</td>
                 <td>{{ mov.motivo|default:"—" }}</td>
                 <td>{{ mov.fecha|date:"d/m/Y H:i" }}</td>
+                <td>
+                  {% if mov.usuario %}
+                    {{ mov.usuario.get_full_name|default:mov.usuario.username }}
+                  {% else %}
+                    <em class="text-muted">Desconocido</em>
+                  {% endif %}
+                </td>
+                <td>{{ mov.rol|default:"-" }}</td>
+                {% if request.user.groups.first.name == 'Administrador' %}
+                <td>
+                  <a href="{% url 'eliminar_movimiento' mov.id %}" class="btn btn-danger btn-sm"
+                     onclick="return confirm('¿Eliminar este movimiento?');">🗑</a>
+                </td>
+                {% endif %}
               </tr>
               {% empty %}
-              <tr><td colspan="4">Sin movimientos aún.</td></tr>
+              <tr><td colspan="7">Sin movimientos aún.</td></tr>
               {% endfor %}
             </tbody>
           </table>
+
         </td>
       </tr>
-      {% empty %}
-      <tr>
-        <td colspan="7" class="text-center">No hay productos registrados.</td>
-      </tr>
       {% endfor %}
+   {% for producto in productos %}
+{% empty %}
+  <tr>
+    <td colspan="7" class="text-center">No hay productos registrados.</td>
+  </tr>
+{% endfor %}
+
     </tbody>
   </table>
 </div>
 {% endblock %}
+

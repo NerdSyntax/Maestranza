@@ -2,15 +2,15 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.http import require_POST
 from datetime import date, timedelta
 
 from .models import Producto, HistorialPrecio, MovimientoInventario, CategoriaProducto
 from .forms import ProductoForm, UsuarioForm, MovimientoInventarioForm
-from django.contrib.auth import logout
 
 
+# 🎯 Decorador: permite al grupo o admin
 def group_required_or_admin(group_name):
     def check_group(user):
         return user.is_authenticated and (
@@ -42,7 +42,6 @@ def login_view(request):
                 return redirect('index')
         else:
             messages.error(request, 'Usuario o contraseña incorrectos.')
-
     return render(request, 'inventario/login.html')
 
 
@@ -76,16 +75,13 @@ def registro_usuario(request):
                     last_name=last_name,
                     password=password
                 )
-                # Asignamos rol por defecto (Comprador)
                 comprador_group = Group.objects.get_or_create(name='Comprador')[0]
                 user.groups.add(comprador_group)
-
                 return redirect('login')
             else:
                 return render(request, 'inventario/registro_usuario.html', {
                     'error': "El nombre de usuario ya existe."
                 })
-
     return render(request, 'inventario/registro_usuario.html')
 
 
@@ -128,7 +124,13 @@ def registro_producto(request):
         form = ProductoForm(request.POST, request.FILES)
         if form.is_valid():
             producto = form.save()
-            HistorialPrecio.objects.create(producto=producto, precio=producto.precio)
+            rol = request.user.groups.first().name if request.user.groups.exists() else "Sin rol"
+            HistorialPrecio.objects.create(
+                producto=producto,
+                precio=producto.precio,
+                usuario=request.user,
+                rol=rol
+            )
             return redirect('producto_crud')
     else:
         form = ProductoForm()
@@ -146,7 +148,13 @@ def editar_producto(request, producto_id):
         if form.is_valid():
             producto_actualizado = form.save()
             if producto_actualizado.precio != precio_anterior:
-                HistorialPrecio.objects.create(producto=producto_actualizado, precio=producto_actualizado.precio)
+                rol = request.user.groups.first().name if request.user.groups.exists() else "Sin rol"
+                HistorialPrecio.objects.create(
+                    producto=producto_actualizado,
+                    precio=producto_actualizado.precio,
+                    usuario=request.user,
+                    rol=rol
+                )
             messages.success(request, "Producto modificado exitosamente.")
             return redirect('producto_crud')
     else:
@@ -231,12 +239,33 @@ def historial_precios_producto(request, producto_id):
 
 
 @login_required
+@group_required_or_admin('Administrador')
+def eliminar_historial_precio(request, historial_id):
+    historial = get_object_or_404(HistorialPrecio, pk=historial_id)
+    historial.delete()
+    messages.success(request, "Historial eliminado.")
+    return redirect('producto_crud')
+
+
+@login_required
+@group_required_or_admin('Administrador')
+def eliminar_movimiento(request, movimiento_id):
+    movimiento = get_object_or_404(MovimientoInventario, pk=movimiento_id)
+    movimiento.delete()
+    messages.success(request, "Movimiento eliminado.")
+    return redirect('producto_crud')
+
+
+@login_required
 @group_required_or_admin('Empleado')
 def registrar_movimiento(request):
     if request.method == 'POST':
         form = MovimientoInventarioForm(request.POST)
         if form.is_valid():
-            movimiento = form.save()
+            movimiento = form.save(commit=False)
+            movimiento.usuario = request.user
+            movimiento.rol = request.user.groups.first().name if request.user.groups.exists() else "Sin rol"
+            movimiento.save()
             if movimiento.tipo == 'entrada':
                 movimiento.producto.stock += movimiento.cantidad
             elif movimiento.tipo == 'salida':
@@ -266,11 +295,13 @@ def registrar_movimiento_directo(request, producto_id):
     motivo = request.POST.get('motivo', '')
 
     if tipo in ['entrada', 'salida'] and cantidad > 0:
-        MovimientoInventario.objects.create(
+        movimiento = MovimientoInventario.objects.create(
             producto=producto,
             tipo=tipo,
             cantidad=cantidad,
-            motivo=motivo
+            motivo=motivo,
+            usuario=request.user,
+            rol=request.user.groups.first().name if request.user.groups.exists() else "Sin rol"
         )
         if tipo == 'entrada':
             producto.stock += cantidad
@@ -280,14 +311,11 @@ def registrar_movimiento_directo(request, producto_id):
         messages.success(request, f"Movimiento '{tipo}' registrado para {producto.nombre}.")
     else:
         messages.error(request, "Error al registrar movimiento.")
-
     return redirect('producto_crud')
 
 
-# Vista abierta al público
 def ver_carrito(request):
     return render(request, 'inventario/carrito.html')
-
 
 
 def logout_view(request):
