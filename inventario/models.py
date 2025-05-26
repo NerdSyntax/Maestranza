@@ -49,5 +49,18 @@ class HistorialPrecio(models.Model):
     def __str__(self):
         return f"{self.producto.nombre} - ${self.precio} - {self.fecha.strftime('%d/%m/%Y %H:%M')}"
 
+class MovimientoInventario(models.Model):
+    TIPO_CHOICES = [
+        ('entrada', 'Entrada'),
+        ('salida', 'Salida'),
+    ]
 
+    producto = models.ForeignKey('Producto', on_delete=models.CASCADE)
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    cantidad = models.PositiveIntegerField()
+    fecha = models.DateTimeField(auto_now_add=True)
+    motivo = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return f"{self.tipo.title()} - {self.producto.nombre} - {self.cantidad}"
 

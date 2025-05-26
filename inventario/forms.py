@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import Producto
 from datetime import date
-
+from .models import MovimientoInventario
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
@@ -54,3 +54,15 @@ class UsuarioForm(forms.ModelForm):
             if password != password_confirm:
                 raise forms.ValidationError("Las contraseñas no coinciden")
         return cleaned_data
+class MovimientoInventarioForm(forms.ModelForm):
+    class Meta:
+        model = MovimientoInventario
+        fields = ['producto', 'tipo', 'cantidad', 'motivo']
+        widgets = {
+            'motivo': forms.TextInput(attrs={'placeholder': 'Motivo del movimiento'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(MovimientoInventarioForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'

@@ -47,11 +47,11 @@
         </td>
         <td>
           <a href="{% url 'editar_producto' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
-          <a href="?delete={{ producto.id }}" class="btn btn-danger btn-sm"
-             onclick="return confirm('¿Eliminar este producto?');">Eliminar</a>
-          <button class="btn btn-info btn-sm" data-bs-toggle="collapse" data-bs-target="#historial{{ producto.id }}">Historial</button>
+          <a href="?delete={{ producto.id }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este producto?');">Eliminar</a>
+          <button class="btn btn-info btn-sm" data-bs-toggle="collapse" data-bs-target="#historial{{ producto.id }}">Detalles</button>
         </td>
       </tr>
+
       <tr class="collapse" id="historial{{ producto.id }}">
         <td colspan="6">
           <strong>Historial de Precios:</strong>
@@ -70,15 +70,62 @@
                 <td>{{ h.fecha|date:"d/m/Y H:i" }}</td>
               </tr>
               {% empty %}
-              <tr>
-                <td colspan="2">No hay historial.</td>
-              </tr>
+              <tr><td colspan="2">No hay historial.</td></tr>
               {% endfor %}
             </tbody>
           </table>
-          {% else %}
-          <p class="text-muted">No hay historial disponible.</p>
           {% endif %}
+
+          <hr>
+
+          <strong>Registrar Movimiento de Inventario:</strong>
+          {% if producto.id %}
+          <form method="post" action="{% url 'registrar_movimiento_directo' producto.id %}" class="row g-2 mt-2">
+            {% csrf_token %}
+            <div class="col-md-2">
+              <select name="tipo" class="form-select" required>
+                <option value="">Tipo</option>
+                <option value="entrada">Entrada</option>
+                <option value="salida">Salida</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <input type="number" name="cantidad" class="form-control" placeholder="Cantidad" min="1" required>
+            </div>
+            <div class="col-md-4">
+              <input type="text" name="motivo" class="form-control" placeholder="Motivo (opcional)">
+            </div>
+            <div class="col-md-2">
+              <button type="submit" class="btn btn-sm btn-success">Registrar</button>
+            </div>
+          </form>
+          {% else %}
+            <p class="text-danger">Error: producto sin ID, no se puede registrar movimiento.</p>
+          {% endif %}
+
+          <strong class="mt-4 d-block">Últimos Movimientos:</strong>
+          <table class="table table-sm table-bordered mt-2">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Motivo</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for mov in producto.movimientoinventario_set.all|dictsortreversed:"fecha"|slice:"5" %}
+              <tr>
+                <td>{{ mov.tipo|title }}</td>
+                <td>{{ mov.cantidad }}</td>
+                <td>{{ mov.motivo|default:"—" }}</td>
+                <td>{{ mov.fecha|date:"d/m/Y H:i" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4">Sin movimientos aún.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </td>
       </tr>
       {% empty %}

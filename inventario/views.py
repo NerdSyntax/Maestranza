@@ -7,7 +7,11 @@ from django.contrib.auth import authenticate, login  # <-- ESTA LÍNEA ES CLAVE
 from .models import Producto, HistorialPrecio
 from .forms import ProductoForm, UsuarioForm
 from datetime import date, timedelta
-from .models import HistorialPrecio
+from .models import MovimientoInventario
+from django.views.decorators.http import require_POST
+from .forms import MovimientoInventarioForm
+
+
 def tienda_view(request):
     return render(request, 'inventario/tienda.html')
 # Página de inicio
@@ -184,3 +188,51 @@ def historial_precios_producto(request, producto_id):
         'producto': producto,
         'historial': historial
     })
+
+
+def registrar_movimiento(request):
+    if request.method == 'POST':
+        form = MovimientoInventarioForm(request.POST)
+        if form.is_valid():
+            movimiento = form.save()
+
+            # Actualizar stock del producto
+            if movimiento.tipo == 'entrada':
+                movimiento.producto.stock += movimiento.cantidad
+            elif movimiento.tipo == 'salida':
+                movimiento.producto.stock -= movimiento.cantidad
+
+            movimiento.producto.save()
+            messages.success(request, "Movimiento registrado correctamente.")
+            return redirect('listar_movimientos')
+    else:
+        form = MovimientoInventarioForm()
+    return render(request, 'inventario/registrar_movimiento.html', {'form': form})
+
+def listar_movimientos(request):
+    movimientos = MovimientoInventario.objects.all().order_by('-fecha')
+    return render(request, 'inventario/listar_movimientos.html', {'movimientos': movimientos})
+@require_POST
+def registrar_movimiento_directo(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    tipo = request.POST.get('tipo')
+    cantidad = int(request.POST.get('cantidad', 0))
+    motivo = request.POST.get('motivo', '')
+
+    if tipo in ['entrada', 'salida'] and cantidad > 0:
+        MovimientoInventario.objects.create(
+            producto=producto,
+            tipo=tipo,
+            cantidad=cantidad,
+            motivo=motivo
+        )
+        if tipo == 'entrada':
+            producto.stock += cantidad
+        else:
+            producto.stock = max(producto.stock - cantidad, 0)
+        producto.save()
+        messages.success(request, f"Movimiento '{tipo}' registrado para {producto.nombre}.")
+    else:
+        messages.error(request, "Error al registrar movimiento.")
+
+    return redirect('producto_crud')

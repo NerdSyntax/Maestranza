@@ -20,4 +20,9 @@ urlpatterns = [
     path('carrito/', views.ver_carrito, name='ver_carrito'),
     path('productos/historial/<int:producto_id>/', views.historial_precios_producto, name='historial_precios'),
 
+
+    path('movimientos/', views.listar_movimientos, name='listar_movimientos'),
+    path('movimientos/registrar/', views.registrar_movimiento, name='registrar_movimiento'),
+    path('productos/movimiento/<int:producto_id>/', views.registrar_movimiento_directo, name='registrar_movimiento_directo'),
+
 ]
