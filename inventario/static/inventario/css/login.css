@@ -1,29 +1,93 @@
+/* === RESET GENERAL === */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* === VARIABLES PERSONALIZADAS === */
+:root {
+  --bg-color: #f8f9fa;
+  --container-bg: #ffffff;
+  --text-color: #212529;
+  --input-bg: #ffffff;
+  --link-color: #0d6efd;
+  --btn-bg: #000000;
+  --btn-hover: #ffc107;
+  --box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* === MODO OSCURO === */
+body.dark-mode {
+  --bg-color: #1e1e1e;
+  --container-bg: #2c2c2c;
+  --text-color: #e0e0e0;
+  --input-bg: #3c3c3c;
+  --link-color: #3399ff;
+  --btn-bg: #3399ff;
+  --btn-hover: #ffd966;
+  --box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+/* === ESTILOS GENERALES === */
 body {
-    background-color: #f8f9fa;
+  background-color: var(--bg-color);
+  font-family: Arial, sans-serif;
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .login-container {
-    max-width: 400px;
-    margin: 80px auto;
-    padding: 30px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  max-width: 400px;
+  margin: 80px auto;
+  padding: 30px;
+  background-color: var(--container-bg);
+  border-radius: 10px;
+  box-shadow: var(--box-shadow);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .login-container h2 {
-    font-weight: 600;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 25px;
 }
 
 .login-container .form-control {
-    border-radius: 6px;
+  border-radius: 6px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid #ccc;
+}
+
+.login-container .form-control:focus {
+  outline: none;
+  border-color: var(--btn-bg);
 }
 
 .login-container a {
-    color: #0d6efd;
-    text-decoration: none;
+  color: var(--link-color);
+  text-decoration: none;
 }
 
 .login-container a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
+}
+
+/* === BOTÓN === */
+.btn-primary {
+  background-color: var(--btn-bg);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  width: 100%;
+}
+
+.btn-primary:hover {
+  background-color: var(--btn-hover);
+  color: #000;
 }

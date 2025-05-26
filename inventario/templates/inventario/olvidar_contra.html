@@ -8,19 +8,21 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <h2>Recuperar contraseña</h2>
-  <p>Ingresa tu correo electrónico para recibir un enlace de restablecimiento.</p>
-  <form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-      <label for="email" class="form-label">Correo electrónico:</label>
-      <input type="email" name="email" class="form-control" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Enviar enlace</button>
-       <div class="mt-3 text-center">
-        <a href="{% url 'index' %}">inicio</a><br>
+<main class="main-content">
+  <div class="container">
+    <h2>Recuperar contraseña</h2>
+    <p>Ingresa tu correo electrónico para recibir un enlace de restablecimiento.</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="email" class="form-label">Correo electrónico:</label>
+        <input type="email" name="email" class="form-control" required>
       </div>
-  </form>
-</div>
+      <button type="submit" class="btn btn-primary">Enviar enlace</button>
+      <div class="mt-3 text-center">
+        <a href="{% url 'index' %}">Volver al inicio</a>
+      </div>
+    </form>
+  </div>
+</main>
 {% endblock %}

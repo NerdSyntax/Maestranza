@@ -1,26 +1,70 @@
-body {
-  background-color: #f0f2f5;
-  font-family: Arial, sans-serif;
+/* === RESET GENERAL === */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
+/* === VARIABLES PERSONALIZADAS === */
+:root {
+  --bg-color: #f0f2f5;
+  --container-bg: #ffffff;
+  --text-color: #333;
+  --label-color: #555;
+  --border-color: #ccc;
+  --input-bg: #ffffff;
+  --primary-color: black;
+  --primary-hover: #0056b3;
+}
+
+/* === MODO OSCURO === */
+body.dark-mode {
+  --bg-color: #1e1e1e;
+  --container-bg: #2c2c2c;
+  --text-color: #e0e0e0;
+  --label-color: #cccccc;
+  --border-color: #555;
+  --input-bg: #3c3c3c;
+  --primary-color: #3399ff;
+  --primary-hover: #1a73e8;
+}
+
+/* === BODY === */
+body {
+  background-color: var(--bg-color);
+  font-family: Arial, sans-serif;
+  color: var(--text-color);
+  transition: background-color 0.4s ease, color 0.4s ease;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === CONTENEDOR PRINCIPAL === */
 .container {
   max-width: 400px;
   margin: 80px auto;
   padding: 30px;
-  background-color: white;
+  background-color: var(--container-bg);
   border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.07);
+  transition: background-color 0.4s ease, box-shadow 0.3s;
 }
 
+/* === TITULO === */
 h2 {
   text-align: center;
   margin-bottom: 25px;
-  color: #333;
+  color: var(--text-color);
+  font-size: 1.5rem;
 }
 
+/* === FORMULARIO === */
 .form-label {
   font-weight: bold;
-  color: #555;
+  color: var(--label-color);
+  margin-bottom: 6px;
+  display: block;
 }
 
 .form-control {
@@ -28,71 +72,78 @@ h2 {
   padding: 10px;
   margin-top: 6px;
   margin-bottom: 16px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   border-radius: 5px;
-  box-sizing: border-box;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
+.form-control:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+/* === BOTÓN === */
 .btn-primary {
   width: 100%;
   padding: 10px;
-  background-color: #007bff;
+  background-color: var(--primary-color);
   border: none;
   color: white;
   border-radius: 5px;
   font-size: 16px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .btn-primary:hover {
-  background-color: #0056b3;
-}
-body {
-  background-color: #f0f2f5;
-  font-family: Arial, sans-serif;
+  background-color: #ffc107;
+  color: #000;
 }
 
-.container {
-  max-width: 400px;
-  margin: 80px auto;
-  padding: 30px;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
+/* === TOGGLE MODO OSCURO === */
+.toggle-dark {
+  display: block;
   text-align: center;
-  margin-bottom: 25px;
-  color: #333;
-}
-
-.form-label {
-  font-weight: bold;
-  color: #555;
-}
-
-.form-control {
-  width: 100%;
-  padding: 10px;
-  margin-top: 6px;
-  margin-bottom: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box;
-}
-
-.btn-primary {
-  width: 100%;
-  padding: 10px;
-  background-color: #007bff;
-  border: none;
-  color: white;
-  border-radius: 5px;
-  font-size: 16px;
+  margin-top: 20px;
   cursor: pointer;
+  color: var(--primary-color);
+  font-weight: bold;
 }
 
-.btn-primary:hover {
-  background-color: #0056b3;
+/* === CENTRADO VERTICAL DE CONTENIDO === */
+.main-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 140px);
+  padding: 50px;
+}
+
+/* === FOOTER OPCIONAL === */
+.footer {
+  margin-top: auto;
+  text-align: center;
+  padding: 20px;
+  background-color: var(--container-bg);
+  border-top: 1px solid var(--border-color);
+  color: var(--label-color);
+  font-size: 14px;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 576px) {
+  .container {
+    margin: 40px 20px;
+    padding: 20px;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  .btn-primary {
+    font-size: 15px;
+  }
 }

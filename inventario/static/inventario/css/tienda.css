@@ -1,40 +1,72 @@
+/* === VARIABLES PERSONALIZADAS === */
+:root {
+  --bg-color: #f8f9fa;
+  --text-color: #343a40;
+  --card-bg: #ffffff;
+  --border-color: #dee2e6;
+  --shadow-hover: rgba(0, 0, 0, 0.1);
+  --text-primary: #0d6efd;
+}
+
+/* === MODO OSCURO === */
+html.dark-mode {
+  --bg-color: #1e1e1e;
+  --text-color: #f1f1f1;
+  --card-bg: #2c2c2c;
+  --border-color: #444;
+  --shadow-hover: rgba(255, 255, 255, 0.1);
+  --text-primary: #3399ff;
+}
+
+/* === BODY === */
 body {
-    background-color: #f8f9fa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-color);
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
+/* === TITULO === */
 h1 {
-    color: #343a40;
-    font-weight: bold;
+  color: var(--text-color);
+  font-weight: bold;
 }
 
+/* === TARJETA DE PRODUCTO === */
 .product-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 10px;
-    overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: var(--card-bg);
 }
 
 .product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px var(--shadow-hover);
 }
 
+/* === IMAGEN === */
 .product-image {
-    height: 200px;
-    object-fit: cover;
-    border-bottom: 1px solid #dee2e6;
+  height: 200px;
+  object-fit: cover;
+  border-bottom: 1px solid var(--border-color);
 }
 
+/* === CUERPO DE TARJETA === */
 .card-body {
-    background-color: #ffffff;
-    padding: 15px;
-    text-align: center;
+  background-color: var(--card-bg);
+  padding: 15px;
+  text-align: center;
+  color: var(--text-color);
 }
 
+/* === BOTONES === */
 .btn {
-    border-radius: 20px;
+  border-radius: 20px;
 }
 
+/* === TEXTO PRINCIPAL === */
 .text-primary {
-    font-size: 1.2rem;
+  font-size: 1.2rem;
+  color: var(--text-primary) !important;
 }
