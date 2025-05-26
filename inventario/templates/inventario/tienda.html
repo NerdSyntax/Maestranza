@@ -28,7 +28,13 @@
     {% for producto in productos %}
     <div class="col">
       <div class="card product-card">
-        <img src="{{ producto.imagen.url }}" class="card-img-top product-image" alt="{{ producto.nombre }}">
+
+        {% if producto.imagen %}
+          <img src="{{ producto.imagen.url }}" class="card-img-top product-image" alt="{{ producto.nombre }}">
+        {% else %}
+          <img src="{% static 'inventario/img/default.jpg' %}" class="card-img-top product-image" alt="Imagen por defecto">
+        {% endif %}
+
         <div class="card-body">
           <h5 class="card-title">{{ producto.nombre }}</h5>
           <p class="card-text">{{ producto.descripcion }}</p>
@@ -37,7 +43,7 @@
                   data-id="{{ producto.id }}"
                   data-nombre="{{ producto.nombre }}"
                   data-precio="{{ producto.precio }}"
-                  data-img="{{ producto.imagen.url }}">
+                  data-img="{% if producto.imagen %}{{ producto.imagen.url }}{% else %}{% static 'inventario/img/default.jpg' %}{% endif %}">
             Agregar al carrito
           </button>
         </div>

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.timezone import now
 
 
 class Proveedor(models.Model):
@@ -36,8 +37,35 @@ class Producto(models.Model):
     stock = models.PositiveIntegerField(default=0)
     stock_minimo = models.PositiveIntegerField(default=1)
 
+    serial_number = models.CharField(
+        max_length=20,
+        unique=True,
+        editable=False,
+        blank=True,
+        help_text="Número de serie generado automáticamente"
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.serial_number:
+            self.serial_number = self.generar_serial_unico()
+        super().save(*args, **kwargs)
+
+    def generar_serial_unico(self):
+        year = now().year
+        prefix = f"INV-{year}-"
+        last_product = Producto.objects.filter(serial_number__startswith=prefix).order_by('id').last()
+        if last_product:
+            last_number = int(last_product.serial_number.split("-")[-1])
+        else:
+            last_number = 0
+        new_serial = f"{prefix}{last_number + 1:05d}"
+        while Producto.objects.filter(serial_number=new_serial).exists():
+            last_number += 1
+            new_serial = f"{prefix}{last_number + 1:05d}"
+        return new_serial
+
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} [{self.serial_number}]"
 
 
 class HistorialPrecio(models.Model):
@@ -49,7 +77,6 @@ class HistorialPrecio(models.Model):
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateTimeField(auto_now_add=True)
 
-    # 🧑‍💼 Auditoría
     usuario = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -80,7 +107,6 @@ class MovimientoInventario(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     motivo = models.CharField(max_length=255, blank=True)
 
-    # 🧑‍💼 Auditoría
     usuario = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
