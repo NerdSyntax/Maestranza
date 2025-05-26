@@ -24,5 +24,5 @@ urlpatterns = [
     path('movimientos/', views.listar_movimientos, name='listar_movimientos'),
     path('movimientos/registrar/', views.registrar_movimiento, name='registrar_movimiento'),
     path('productos/movimiento/<int:producto_id>/', views.registrar_movimiento_directo, name='registrar_movimiento_directo'),
-
+    path('logout/', views.logout_view, name='logout'),
 ]

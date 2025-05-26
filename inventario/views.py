@@ -1,24 +1,22 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import authenticate, login
 from django.views.decorators.http import require_POST
 from datetime import date, timedelta
 
-from .models import (
-    Producto,
-    HistorialPrecio,
-    MovimientoInventario,
-    CategoriaProducto,  # ✅ ESTE FALTABA
-)
+from .models import Producto, HistorialPrecio, MovimientoInventario, CategoriaProducto
+from .forms import ProductoForm, UsuarioForm, MovimientoInventarioForm
+from django.contrib.auth import logout
 
-from .forms import (
-    ProductoForm,
-    UsuarioForm,
-    MovimientoInventarioForm,
-)
+
+def group_required_or_admin(group_name):
+    def check_group(user):
+        return user.is_authenticated and (
+            user.groups.filter(name=group_name).exists() or user.groups.filter(name='Administrador').exists()
+        )
+    return user_passes_test(check_group)
 
 
 def index(request):
@@ -32,9 +30,16 @@ def login_view(request):
 
         user = authenticate(request, username=username, password=password)
 
-        if user is not None:
+        if user:
             login(request, user)
-            return redirect('tienda')
+            if user.groups.filter(name='Administrador').exists():
+                return redirect('usuarios_crud')
+            elif user.groups.filter(name='Empleado').exists():
+                return redirect('producto_crud')
+            elif user.groups.filter(name='Comprador').exists():
+                return redirect('tienda')
+            else:
+                return redirect('index')
         else:
             messages.error(request, 'Usuario o contraseña incorrectos.')
 
@@ -42,6 +47,7 @@ def login_view(request):
 
 
 @login_required
+@group_required_or_admin('Comprador')
 def tienda_view(request):
     productos = Producto.objects.all()
     return render(request, 'inventario/tienda.html', {'productos': productos})
@@ -63,13 +69,17 @@ def registro_usuario(request):
 
         if username and email and password:
             if not User.objects.filter(username=username).exists():
-                User.objects.create(
+                user = User.objects.create_user(
                     username=username,
                     email=email,
                     first_name=first_name,
                     last_name=last_name,
-                    password=make_password(password)
+                    password=password
                 )
+                # Asignamos rol por defecto (Comprador)
+                comprador_group = Group.objects.get_or_create(name='Comprador')[0]
+                user.groups.add(comprador_group)
+
                 return redirect('login')
             else:
                 return render(request, 'inventario/registro_usuario.html', {
@@ -87,26 +97,8 @@ def registro_inventario(request):
     return render(request, 'inventario/registro_item.html')
 
 
-def lista_productos(request):
-    categoria_id = request.GET.get('categoria')
-    categorias = CategoriaProducto.objects.order_by('nombre')
-    productos = Producto.objects.all()
-
-    if categoria_id:
-        productos = productos.filter(categoria_id=categoria_id)
-
-    today = date.today()
-    today_plus_7 = today + timedelta(days=7)
-
-    return render(request, 'inventario/lista_productos.html', {
-        'productos': productos,
-        'categorias': categorias,
-        'categoria_seleccionada': int(categoria_id) if categoria_id else None,
-        'today': today,
-        'today_plus_7': today_plus_7,
-    })
-
-
+@login_required
+@group_required_or_admin('Empleado')
 def producto_crud(request):
     categoria_id = request.GET.get('categoria')
     categorias = CategoriaProducto.objects.order_by('nombre')
@@ -129,6 +121,8 @@ def producto_crud(request):
     })
 
 
+@login_required
+@group_required_or_admin('Empleado')
 def registro_producto(request):
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES)
@@ -141,6 +135,8 @@ def registro_producto(request):
     return render(request, 'inventario/registro_producto.html', {'form': form})
 
 
+@login_required
+@group_required_or_admin('Empleado')
 def editar_producto(request, producto_id):
     producto = get_object_or_404(Producto, pk=producto_id)
     precio_anterior = producto.precio
@@ -163,14 +159,18 @@ def editar_producto(request, producto_id):
     })
 
 
+@login_required
+@group_required_or_admin('Administrador')
 def usuarios_crud(request):
     editar = False
     usuario = None
+    grupo_usuario = None
 
     if 'edit' in request.GET:
         editar = True
         usuario = get_object_or_404(User, pk=request.GET['edit'])
         form = UsuarioForm(request.POST or None, instance=usuario)
+        grupo_usuario = usuario.groups.first()
     elif 'delete' in request.GET:
         usuario = get_object_or_404(User, pk=request.GET['delete'])
         usuario.delete()
@@ -190,19 +190,37 @@ def usuarios_crud(request):
             if form.cleaned_data['password']:
                 user.set_password(form.cleaned_data['password'])
             user.save()
+
+            selected_group_name = request.POST.get('grupo')
+            if selected_group_name:
+                group = Group.objects.filter(name=selected_group_name).first()
+                user.groups.clear()
+                if group:
+                    user.groups.add(group)
+
             messages.success(request, "Usuario guardado exitosamente.")
             return redirect('usuarios_crud')
 
+    grupo_seleccionado = request.GET.get('grupo')
     usuarios = User.objects.all()
+    if grupo_seleccionado:
+        usuarios = usuarios.filter(groups__name=grupo_seleccionado)
+
+    grupos = Group.objects.all()
 
     return render(request, 'inventario/usuarios_crud.html', {
         'form': form,
         'usuarios': usuarios,
         'editar': editar,
-        'usuario': usuario
+        'usuario': usuario,
+        'grupos': grupos,
+        'grupo_usuario': grupo_usuario,
+        'grupo_seleccionado': grupo_seleccionado,
     })
 
 
+@login_required
+@group_required_or_admin('Administrador')
 def historial_precios_producto(request, producto_id):
     producto = get_object_or_404(Producto, pk=producto_id)
     historial = producto.historial_precios.all().order_by('-fecha')
@@ -212,6 +230,8 @@ def historial_precios_producto(request, producto_id):
     })
 
 
+@login_required
+@group_required_or_admin('Empleado')
 def registrar_movimiento(request):
     if request.method == 'POST':
         form = MovimientoInventarioForm(request.POST)
@@ -221,7 +241,6 @@ def registrar_movimiento(request):
                 movimiento.producto.stock += movimiento.cantidad
             elif movimiento.tipo == 'salida':
                 movimiento.producto.stock -= movimiento.cantidad
-
             movimiento.producto.save()
             messages.success(request, "Movimiento registrado correctamente.")
             return redirect('listar_movimientos')
@@ -230,11 +249,15 @@ def registrar_movimiento(request):
     return render(request, 'inventario/registrar_movimiento.html', {'form': form})
 
 
+@login_required
+@group_required_or_admin('Empleado')
 def listar_movimientos(request):
     movimientos = MovimientoInventario.objects.all().order_by('-fecha')
     return render(request, 'inventario/listar_movimientos.html', {'movimientos': movimientos})
 
 
+@login_required
+@group_required_or_admin('Empleado')
 @require_POST
 def registrar_movimiento_directo(request, producto_id):
     producto = get_object_or_404(Producto, id=producto_id)
@@ -261,5 +284,12 @@ def registrar_movimiento_directo(request, producto_id):
     return redirect('producto_crud')
 
 
+# Vista abierta al público
 def ver_carrito(request):
     return render(request, 'inventario/carrito.html')
+
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')

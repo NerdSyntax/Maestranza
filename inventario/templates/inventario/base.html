@@ -18,20 +18,38 @@
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
+
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav">
+      <ul class="navbar-nav me-auto">
 
         <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Inicio</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'registro_usuario' %}">Registrarse</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'olvidar_contra' %}">¿Olvidaste tu contraseña?</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'usuarios_crud' %}">Usuarios</a></li>
 
-        <!-- NUEVOS ENLACES -->
-        <li class="nav-item"><a class="nav-link" href="{% url 'producto_crud' %}">CRUD Productos</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'registro_producto' %}">Registrar Producto</a></li>
+        {% if user.is_authenticated %}
+            {% if user.groups.first.name == 'Administrador' %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'usuarios_crud' %}">Usuarios</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'producto_crud' %}">CRUD Productos</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'registro_producto' %}">Registrar Producto</a></li>
+
+            {% elif user.groups.first.name == 'Empleado' %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'producto_crud' %}">CRUD Productos</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'registro_producto' %}">Registrar Producto</a></li>
+
+            {% elif user.groups.first.name == 'Comprador' %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'tienda' %}">Tienda</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'ver_carrito' %}">Carrito</a></li>
+            {% endif %}
+        {% else %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'registro_usuario' %}">Registrarse</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'olvidar_contra' %}">¿Olvidaste tu contraseña?</a></li>
+        {% endif %}
 
       </ul>
+
+      {% if user.is_authenticated %}
+        <span class="navbar-text me-3">Hola, {{ user.username }}</span>
+        <a href="{% url 'logout' %}" class="btn btn-outline-danger">Cerrar sesión</a>
+      {% endif %}
     </div>
   </div>
 </nav>
