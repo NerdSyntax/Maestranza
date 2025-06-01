@@ -15,7 +15,8 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\env\Scripts\Activate.ps1
 pip install django
 python -m pip install Pillow
-
+pip install openpyxl
+ python manage.py runserver
 
 -- PENDIENTES POR HACER -- 
 

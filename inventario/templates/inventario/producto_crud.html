@@ -23,181 +23,180 @@
     </div>
   </form>
 
-  <a href="{% url 'registro_producto' %}" class="btn btn-primary mb-3">Agregar Producto</a>
+  {% if request.user.groups.first.name != 'Almacén' %}
+    <a href="{% url 'registro_producto' %}" class="btn btn-primary mb-3">Agregar Producto</a>
+  {% endif %}
 
   <table class="table table-bordered table-striped">
     <thead>
-  <tr>
-    <th>Nombre</th>
-    <th>Serie</th> <!-- NUEVO -->
-    <th>Categoría</th>
-    <th>Precio</th>
-    <th>Descripción</th>
-    <th>Fecha de Vencimiento</th>
-    <th>Stock</th>
-    <th>Acciones</th>
-  </tr>
-</thead>
-    <tbody>
-  {% for producto in productos %}
-  <tr>
-    <td>{{ producto.nombre }}</td>
-    <td><span class="badge bg-dark">{{ producto.serial_number }}</span></td> <!-- NUEVO -->
-    <td>{{ producto.categoria.nombre|default:"Sin categoría" }}</td>
-    <td>${{ producto.precio }}</td>
-    <td>{{ producto.descripcion }}</td>
-    <td>
-      {% if producto.fecha_vencimiento %}
-        {% if producto.fecha_vencimiento < today %}
-          <span class="badge bg-danger">Vencido ({{ producto.fecha_vencimiento|date:"d/m/Y" }})</span>
-        {% elif producto.fecha_vencimiento <= today_plus_7 %}
-          <span class="badge bg-warning text-dark">Por vencer ({{ producto.fecha_vencimiento|date:"d/m/Y" }})</span>
-        {% else %}
-          <span class="badge bg-success">{{ producto.fecha_vencimiento|date:"d/m/Y" }}</span>
-        {% endif %}
-      {% else %}
-        <span class="text-muted">Sin fecha</span>
-      {% endif %}
-    </td>
-    <td>
-      {% if producto.stock <= producto.stock_minimo %}
-        <span class="badge bg-danger">Bajo ({{ producto.stock }})</span>
-      {% else %}
-        <span class="badge bg-success">{{ producto.stock }}</span>
-      {% endif %}
-    </td>
-    <td>
-      <a href="{% url 'editar_producto' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
-      <a href="?delete={{ producto.id }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este producto?');">Eliminar</a>
-      <button class="btn btn-info btn-sm" data-bs-toggle="collapse" data-bs-target="#historial{{ producto.id }}">Detalles</button>
-    </td>
-  </tr>
-
-      <!-- Detalles -->
-      <tr class="collapse" id="historial{{ producto.id }}">
-  <td colspan="8"> <!-- Cambiado a 8 columnas -->
-    <p><strong>Número de Serie:</strong> <span class="badge bg-secondary">{{ producto.serial_number }}</span></p>
-
-          <!-- Historial de Precios -->
-          <strong>Historial de Precios:</strong>
-          <table class="table table-sm table-bordered mt-2">
-            <thead>
-              <tr>
-                <th>Precio</th>
-                <th>Fecha</th>
-                <th>Usuario</th>
-                <th>Rol</th>
-                {% if request.user.groups.first.name == 'Administrador' %}
-                <th>Acción</th>
-                {% endif %}
-              </tr>
-            </thead>
-            <tbody>
-              {% for h in producto.historial_precios.all|dictsortreversed:"fecha" %}
-              <tr>
-                <td>${{ h.precio }}</td>
-                <td>{{ h.fecha|date:"d/m/Y H:i" }}</td>
-                <td>
-                  {% if h.usuario %}
-                    {{ h.usuario.get_full_name|default:h.usuario.username }}
-                  {% else %}
-                    <em class="text-muted">Desconocido</em>
-                  {% endif %}
-                </td>
-                <td>{{ h.rol|default:"-" }}</td>
-                {% if request.user.groups.first.name == 'Administrador' %}
-                <td>
-                  <a href="{% url 'eliminar_historial_precio' h.id %}" class="btn btn-danger btn-sm"
-                     onclick="return confirm('¿Eliminar este historial de precio?');">🗑</a>
-                </td>
-                {% endif %}
-              </tr>
-              {% empty %}
-              <tr><td colspan="5">No hay historial.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-
-          <hr>
-
-          <!-- Registrar Movimiento -->
-          <strong>Registrar Movimiento de Inventario:</strong>
-          <form method="post" action="{% url 'registrar_movimiento_directo' producto.id %}" class="row g-2 mt-2">
-            {% csrf_token %}
-            <div class="col-md-2">
-              <select name="tipo" class="form-select" required>
-                <option value="">Tipo</option>
-                <option value="entrada">Entrada</option>
-                <option value="salida">Salida</option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <input type="number" name="cantidad" class="form-control" placeholder="Cantidad" min="1" required>
-            </div>
-            <div class="col-md-4">
-              <input type="text" name="motivo" class="form-control" placeholder="Motivo (opcional)">
-            </div>
-            <div class="col-md-2">
-              <button type="submit" class="btn btn-sm btn-success">Registrar</button>
-            </div>
-          </form>
-
-          <!-- Últimos Movimientos -->
-          <strong class="mt-4 d-block">Últimos Movimientos:</strong>
-          <table class="table table-sm table-bordered mt-2">
-            <thead>
-              <tr>
-                <th>Tipo</th>
-                <th>Cantidad</th>
-                <th>Motivo</th>
-                <th>Fecha</th>
-                <th>Usuario</th>
-                <th>Rol</th>
-                {% if request.user.groups.first.name == 'Administrador' %}
-                <th>Acción</th>
-                {% endif %}
-              </tr>
-            </thead>
-            <tbody>
-              {% for mov in producto.movimientoinventario_set.all|dictsortreversed:"fecha"|slice:"5" %}
-              <tr>
-                <td>{{ mov.tipo|title }}</td>
-                <td>{{ mov.cantidad }}</td>
-                <td>{{ mov.motivo|default:"—" }}</td>
-                <td>{{ mov.fecha|date:"d/m/Y H:i" }}</td>
-                <td>
-                  {% if mov.usuario %}
-                    {{ mov.usuario.get_full_name|default:mov.usuario.username }}
-                  {% else %}
-                    <em class="text-muted">Desconocido</em>
-                  {% endif %}
-                </td>
-                <td>{{ mov.rol|default:"-" }}</td>
-                {% if request.user.groups.first.name == 'Administrador' %}
-                <td>
-                  <a href="{% url 'eliminar_movimiento' mov.id %}" class="btn btn-danger btn-sm"
-                     onclick="return confirm('¿Eliminar este movimiento?');">🗑</a>
-                </td>
-                {% endif %}
-              </tr>
-              {% empty %}
-              <tr><td colspan="7">Sin movimientos aún.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-
-        </td>
+      <tr>
+        <th>Nombre</th>
+        <th>Serie</th>
+        <th>Categoría</th>
+        <th>Precio</th>
+        <th>Descripción</th>
+        <th>Fecha de Vencimiento</th>
+        <th>Stock</th>
+        <th>Acciones</th>
       </tr>
-      {% endfor %}
-   {% for producto in productos %}
-{% empty %}
-  <tr>
-    <td colspan="7" class="text-center">No hay productos registrados.</td>
-  </tr>
-{% endfor %}
+    </thead>
+    <tbody>
+      {% for producto in productos %}
+        <tr>
+          <td>{{ producto.nombre }}</td>
+          <td><span class="badge bg-dark">{{ producto.serial_number }}</span></td>
+          <td>{{ producto.categoria.nombre|default:"Sin categoría" }}</td>
+          <td>${{ producto.precio }}</td>
+          <td>{{ producto.descripcion }}</td>
+          <td>
+            {% if producto.fecha_vencimiento %}
+              {% if producto.fecha_vencimiento < today %}
+                <span class="badge bg-danger">Vencido ({{ producto.fecha_vencimiento|date:"d/m/Y" }})</span>
+              {% elif producto.fecha_vencimiento <= today_plus_7 %}
+                <span class="badge bg-warning text-dark">Por vencer ({{ producto.fecha_vencimiento|date:"d/m/Y" }})</span>
+              {% else %}
+                <span class="badge bg-success">{{ producto.fecha_vencimiento|date:"d/m/Y" }}</span>
+              {% endif %}
+            {% else %}
+              <span class="text-muted">Sin fecha</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if producto.stock <= producto.stock_minimo %}
+              <span class="badge bg-danger">Bajo ({{ producto.stock }})</span>
+            {% else %}
+              <span class="badge bg-success">{{ producto.stock }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if request.user.groups.first.name != 'Almacén' %}
+              <a href="{% url 'editar_producto' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
+              <a href="?delete={{ producto.id }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este producto?');">Eliminar</a>
+            {% endif %}
+            <button class="btn btn-info btn-sm" data-bs-toggle="collapse" data-bs-target="#historial{{ producto.id }}">Detalles</button>
+          </td>
+        </tr>
 
+        <!-- Detalles -->
+        <tr class="collapse" id="historial{{ producto.id }}">
+          <td colspan="8">
+            <p><strong>Número de Serie:</strong> <span class="badge bg-secondary">{{ producto.serial_number }}</span></p>
+
+            <!-- Historial de Precios -->
+            <strong>Historial de Precios:</strong>
+            <table class="table table-sm table-bordered mt-2">
+              <thead>
+                <tr>
+                  <th>Precio</th>
+                  <th>Fecha</th>
+                  <th>Usuario</th>
+                  <th>Rol</th>
+                  {% if request.user.groups.first.name == 'Administrador' %}
+                    <th>Acción</th>
+                  {% endif %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for h in producto.historial_precios.all|dictsortreversed:"fecha" %}
+                  <tr>
+                    <td>${{ h.precio }}</td>
+                    <td>{{ h.fecha|date:"d/m/Y H:i" }}</td>
+                    <td>
+                      {% if h.usuario %}
+                        {{ h.usuario.get_full_name|default:h.usuario.username }}
+                      {% else %}
+                        <em class="text-muted">Desconocido</em>
+                      {% endif %}
+                    </td>
+                    <td>{{ h.rol|default:"-" }}</td>
+                    {% if request.user.groups.first.name == 'Administrador' %}
+                      <td>
+                        <a href="{% url 'eliminar_historial_precio' h.id %}" class="btn btn-danger btn-sm"
+                          onclick="return confirm('¿Eliminar este historial de precio?');">🗑</a>
+                      </td>
+                    {% endif %}
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="5">No hay historial.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+            <hr>
+
+            <!-- Registrar Movimiento -->
+            <strong>Registrar Movimiento de Inventario:</strong>
+            <form method="post" action="{% url 'registrar_movimiento_directo' producto.id %}" class="row g-2 mt-2">
+              {% csrf_token %}
+              <div class="col-md-2">
+                <select name="tipo" class="form-select" required>
+                  <option value="">Tipo</option>
+                  <option value="entrada">Entrada</option>
+                  <option value="salida">Salida</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <input type="number" name="cantidad" class="form-control" placeholder="Cantidad" min="1" required>
+              </div>
+              <div class="col-md-4">
+                <input type="text" name="motivo" class="form-control" placeholder="Motivo (opcional)">
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn btn-sm btn-success">Registrar</button>
+              </div>
+            </form>
+
+            <!-- Últimos Movimientos -->
+            <strong class="mt-4 d-block">Últimos Movimientos:</strong>
+            <table class="table table-sm table-bordered mt-2">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Cantidad</th>
+                  <th>Motivo</th>
+                  <th>Fecha</th>
+                  <th>Usuario</th>
+                  <th>Rol</th>
+                  {% if request.user.groups.first.name == 'Administrador' %}
+                    <th>Acción</th>
+                  {% endif %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for mov in producto.movimientoinventario_set.all|dictsortreversed:"fecha"|slice:"5" %}
+                  <tr>
+                    <td>{{ mov.tipo|title }}</td>
+                    <td>{{ mov.cantidad }}</td>
+                    <td>{{ mov.motivo|default:"—" }}</td>
+                    <td>{{ mov.fecha|date:"d/m/Y H:i" }}</td>
+                    <td>
+                      {% if mov.usuario %}
+                        {{ mov.usuario.get_full_name|default:mov.usuario.username }}
+                      {% else %}
+                        <em class="text-muted">Desconocido</em>
+                      {% endif %}
+                    </td>
+                    <td>{{ mov.rol|default:"-" }}</td>
+                    {% if request.user.groups.first.name == 'Administrador' %}
+                      <td>
+                        <a href="{% url 'eliminar_movimiento' mov.id %}" class="btn btn-danger btn-sm"
+                          onclick="return confirm('¿Eliminar este movimiento?');">🗑</a>
+                      </td>
+                    {% endif %}
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="7">Sin movimientos aún.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="8" class="text-center">No hay productos registrados.</td>
+        </tr>
+      {% endfor %}
     </tbody>
   </table>
 </div>
 {% endblock %}
-

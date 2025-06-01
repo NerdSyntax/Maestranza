@@ -1,6 +1,5 @@
 import openpyxl
 import json
-from collections import Counter
 from io import BytesIO
 from django.utils.timezone import now
 from django.http import HttpResponse
@@ -17,8 +16,7 @@ from datetime import date, timedelta
 from .models import Producto, HistorialPrecio, MovimientoInventario, CategoriaProducto
 from .forms import ProductoForm, UsuarioForm, MovimientoInventarioForm
 
-
-# 🎯 Decorador: permite al grupo o admin
+# 🎯 Decorador: permite un grupo o admin
 def group_required_or_admin(group_name):
     def check_group(user):
         return user.is_authenticated and (
@@ -26,23 +24,27 @@ def group_required_or_admin(group_name):
         )
     return user_passes_test(check_group)
 
+# ✅ Decorador: permite múltiples grupos o admin
+def groups_required(*group_names):
+    def check_groups(user):
+        return user.is_authenticated and (
+            user.groups.filter(name__in=group_names).exists() or user.groups.filter(name='Administrador').exists()
+        )
+    return user_passes_test(check_groups)
 
 def index(request):
     return render(request, 'inventario/index.html')
-
 
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-
         user = authenticate(request, username=username, password=password)
-
         if user:
             login(request, user)
             if user.groups.filter(name='Administrador').exists():
                 return redirect('usuarios_crud')
-            elif user.groups.filter(name='Empleado').exists():
+            elif user.groups.filter(name='Gestor de Inventario').exists():
                 return redirect('producto_crud')
             elif user.groups.filter(name='Comprador').exists():
                 return redirect('tienda')
@@ -52,13 +54,11 @@ def login_view(request):
             messages.error(request, 'Usuario o contraseña incorrectos.')
     return render(request, 'inventario/login.html')
 
-
 @login_required
-@group_required_or_admin('Comprador')
+@groups_required('Comprador', 'Gestor de Inventario', 'Almacén')
 def tienda_view(request):
     productos = Producto.objects.all()
     return render(request, 'inventario/tienda.html', {'productos': productos})
-
 
 def registro_usuario(request):
     if request.method == 'POST':
@@ -83,8 +83,7 @@ def registro_usuario(request):
                     last_name=last_name,
                     password=password
                 )
-                comprador_group = Group.objects.get_or_create(name='Comprador')[0]
-                user.groups.add(comprador_group)
+                # 🔥 No se asigna grupo aquí, queda sin rol
                 return redirect('login')
             else:
                 return render(request, 'inventario/registro_usuario.html', {
@@ -96,26 +95,21 @@ def registro_usuario(request):
 def olvidar_contra(request):
     return render(request, 'inventario/olvidar_contra.html')
 
-
 def registro_inventario(request):
     return render(request, 'inventario/registro_item.html')
 
-
 @login_required
-@group_required_or_admin('Empleado')
+@groups_required('Gestor de Inventario', 'Almacén')
 def producto_crud(request):
     categoria_id = request.GET.get('categoria')
     categorias = CategoriaProducto.objects.order_by('nombre')
     productos = Producto.objects.all()
-
     if categoria_id:
         productos = productos.filter(categoria_id=categoria_id)
-
     if 'delete' in request.GET:
         producto = get_object_or_404(Producto, pk=request.GET['delete'])
         producto.delete()
         return redirect('producto_crud')
-
     return render(request, 'inventario/producto_crud.html', {
         'productos': productos,
         'categorias': categorias,
@@ -124,9 +118,8 @@ def producto_crud(request):
         'today_plus_7': date.today() + timedelta(days=7),
     })
 
-
 @login_required
-@group_required_or_admin('Empleado')
+@group_required_or_admin('Gestor de Inventario')
 def registro_producto(request):
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES)
@@ -144,13 +137,11 @@ def registro_producto(request):
         form = ProductoForm()
     return render(request, 'inventario/registro_producto.html', {'form': form})
 
-
 @login_required
-@group_required_or_admin('Empleado')
+@groups_required('Gestor de Inventario', 'Almacén')
 def editar_producto(request, producto_id):
     producto = get_object_or_404(Producto, pk=producto_id)
     precio_anterior = producto.precio
-
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES, instance=producto)
         if form.is_valid():
@@ -167,13 +158,11 @@ def editar_producto(request, producto_id):
             return redirect('producto_crud')
     else:
         form = ProductoForm(instance=producto)
-
     return render(request, 'inventario/registro_producto.html', {
         'form': form,
         'editar': True,
         'producto': producto
     })
-
 
 @login_required
 @group_required_or_admin('Administrador')
@@ -200,20 +189,17 @@ def usuarios_crud(request):
             form = UsuarioForm(request.POST, instance=usuario)
         else:
             form = UsuarioForm(request.POST)
-
         if form.is_valid():
             user = form.save(commit=False)
             if form.cleaned_data['password']:
                 user.set_password(form.cleaned_data['password'])
             user.save()
-
             selected_group_name = request.POST.get('grupo')
             if selected_group_name:
                 group = Group.objects.filter(name=selected_group_name).first()
                 user.groups.clear()
                 if group:
                     user.groups.add(group)
-
             messages.success(request, "Usuario guardado exitosamente.")
             return redirect('usuarios_crud')
 
@@ -223,7 +209,6 @@ def usuarios_crud(request):
         usuarios = usuarios.filter(groups__name=grupo_seleccionado)
 
     grupos = Group.objects.all()
-
     return render(request, 'inventario/usuarios_crud.html', {
         'form': form,
         'usuarios': usuarios,
@@ -233,7 +218,6 @@ def usuarios_crud(request):
         'grupo_usuario': grupo_usuario,
         'grupo_seleccionado': grupo_seleccionado,
     })
-
 
 @login_required
 @group_required_or_admin('Administrador')
@@ -245,7 +229,6 @@ def historial_precios_producto(request, producto_id):
         'historial': historial
     })
 
-
 @login_required
 @group_required_or_admin('Administrador')
 def eliminar_historial_precio(request, historial_id):
@@ -253,7 +236,6 @@ def eliminar_historial_precio(request, historial_id):
     historial.delete()
     messages.success(request, "Historial eliminado.")
     return redirect('producto_crud')
-
 
 @login_required
 @group_required_or_admin('Administrador')
@@ -263,9 +245,8 @@ def eliminar_movimiento(request, movimiento_id):
     messages.success(request, "Movimiento eliminado.")
     return redirect('producto_crud')
 
-
 @login_required
-@group_required_or_admin('Empleado')
+@groups_required('Gestor de Inventario', 'Almacén')
 def registrar_movimiento(request):
     if request.method == 'POST':
         form = MovimientoInventarioForm(request.POST)
@@ -285,16 +266,14 @@ def registrar_movimiento(request):
         form = MovimientoInventarioForm()
     return render(request, 'inventario/registrar_movimiento.html', {'form': form})
 
-
 @login_required
-@group_required_or_admin('Empleado')
+@groups_required('Gestor de Inventario', 'Almacén')
 def listar_movimientos(request):
     movimientos = MovimientoInventario.objects.all().order_by('-fecha')
     return render(request, 'inventario/listar_movimientos.html', {'movimientos': movimientos})
 
-
 @login_required
-@group_required_or_admin('Empleado')
+@groups_required('Gestor de Inventario', 'Almacén')
 @require_POST
 def registrar_movimiento_directo(request, producto_id):
     producto = get_object_or_404(Producto, id=producto_id)
@@ -321,17 +300,15 @@ def registrar_movimiento_directo(request, producto_id):
         messages.error(request, "Error al registrar movimiento.")
     return redirect('producto_crud')
 
-
 def ver_carrito(request):
     return render(request, 'inventario/carrito.html')
-
 
 def logout_view(request):
     logout(request)
     return redirect('login')
 
 @login_required
-@group_required_or_admin('Administrador')
+@groups_required('Administrador', 'Gestor de Inventario', 'Almacén')
 def dashboard_view(request):
     total_productos = Producto.objects.count()
     stock_critico = Producto.objects.filter(stock__lt=5).count()
@@ -358,7 +335,6 @@ def dashboard_view(request):
     }
 
     return render(request, 'inventario/dashboard.html', context)
-
 
 @login_required
 def exportar_excel(request):
