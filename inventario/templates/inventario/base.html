@@ -28,15 +28,18 @@
 
         {% if user.is_authenticated %}
             {% if user.groups.first.name == 'Administrador' %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'usuarios_crud' %}">Usuarios</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'producto_crud' %}">CRUD Productos</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'registro_producto' %}">Registrar Producto</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'tienda' %}">Tienda</a></li>
+
             {% elif user.groups.first.name == 'Empleado' %}
                 <li class="nav-item"><a class="nav-link" href="{% url 'producto_crud' %}">CRUD Productos</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'registro_producto' %}">Registrar Producto</a></li>
             {% elif user.groups.first.name == 'Comprador' %}
                 <li class="nav-item"><a class="nav-link" href="{% url 'tienda' %}">Tienda</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'ver_carrito' %}">Carrito</a></li>
+
             {% endif %}
         {% else %}
             <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a></li>
@@ -51,14 +54,10 @@
           <a href="{% url 'logout' %}" class="btn btn-outline-light me-2">Cerrar sesión</a>
         </div>
       {% endif %}
-
-      <!-- Botón modo oscuro -->
-      <!-- <button class="btn btn-warning btn-sm" onclick="toggleDarkMode()">🌗</button> -->
     </div>
   </div>
 </nav>
 
-<!-- Contenido centrado verticalmente -->
 <main class="main-content">
   {% block content %}{% endblock %}
 </main>
@@ -74,9 +73,10 @@
 <script>
   function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
-    // Guardar en localStorage o enviar a backend si deseas persistencia
     document.cookie = "theme=" + (document.body.classList.contains('dark-mode') ? "dark" : "light") + ";path=/";
   }
 </script>
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>

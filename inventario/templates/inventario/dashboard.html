@@ -1,0 +1,66 @@
+{% extends 'inventario/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h1 class="mb-4 text-center">
+    <img src="https://img.icons8.com/fluency/48/combo-chart.png" alt="icon"> Panel de Control
+  </h1>
+
+  <div class="row text-center mb-4">
+    <div class="col-md-3">
+      <div class="card bg-gradient-primary card-metric">
+        <h5>Total Productos</h5>
+        <p>{{ total_productos }}</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-gradient-danger card-metric">
+        <h5>Stock Crítico</h5>
+        <p>{{ stock_critico }}</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-gradient-success card-metric">
+        <h5>Usuarios Registrados</h5>
+        <p>{{ total_usuarios }}</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-gradient-warning card-metric">
+        <h5>Conectados Hoy</h5>
+        <p>{{ usuarios_activos }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <canvas id="graficoCategorias"
+        data-labels='{{ labels_categorias|safe }}'
+        data-data='{{ data_categorias|safe }}'></canvas>
+    </div>
+    <div class="col-md-6">
+      <canvas id="graficoStock"
+        data-labels='{{ labels_productos|safe }}'
+        data-data='{{ data_stock|safe }}'></canvas>
+    </div>
+    <div class="col-12 mt-4 text-center">
+      <a class="btn btn-outline-success" href="{% url 'exportar_excel' %}">
+        📥 Exportar Panel a Excel
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

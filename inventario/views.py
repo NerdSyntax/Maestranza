@@ -1,3 +1,11 @@
+import openpyxl
+import json
+from collections import Counter
+from io import BytesIO
+from django.utils.timezone import now
+from django.http import HttpResponse
+from django.utils import timezone
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User, Group
@@ -321,3 +329,83 @@ def ver_carrito(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+@login_required
+@group_required_or_admin('Administrador')
+def dashboard_view(request):
+    total_productos = Producto.objects.count()
+    stock_critico = Producto.objects.filter(stock__lt=5).count()
+    total_usuarios = User.objects.count()
+    usuarios_activos = User.objects.filter(last_login__date=timezone.now().date()).count()
+
+    categorias = CategoriaProducto.objects.all()
+    labels_categorias = [c.nombre for c in categorias]
+    data_categorias = [Producto.objects.filter(categoria=c).count() for c in categorias]
+
+    productos = Producto.objects.all()
+    labels_productos = [p.nombre for p in productos[:6]]
+    data_stock = [p.stock for p in productos[:6]]
+
+    context = {
+        'total_productos': total_productos,
+        'stock_critico': stock_critico,
+        'total_usuarios': total_usuarios,
+        'usuarios_activos': usuarios_activos,
+        'labels_categorias': json.dumps(labels_categorias),
+        'data_categorias': json.dumps(data_categorias),
+        'labels_productos': json.dumps(labels_productos),
+        'data_stock': json.dumps(data_stock),
+    }
+
+    return render(request, 'inventario/dashboard.html', context)
+
+
+@login_required
+def exportar_excel(request):
+    wb = openpyxl.Workbook()
+    ws_productos = wb.active
+    ws_productos.title = "Productos"
+
+    ws_productos.append(['ID', 'Nombre', 'Categoría', 'Precio', 'Stock'])
+
+    for p in Producto.objects.all():
+        ws_productos.append([
+            p.id,
+            p.nombre,
+            p.categoria.nombre if p.categoria else '',
+            float(p.precio),
+            p.stock
+        ])
+
+    # Estadísticas
+    ws_stats = wb.create_sheet(title="Estadísticas")
+    ws_stats.append(["Métrica", "Valor"])
+    ws_stats.append(["Total Productos", Producto.objects.count()])
+    ws_stats.append(["Stock Crítico (<=5)", Producto.objects.filter(stock__lte=5).count()])
+    ws_stats.append(["Usuarios Registrados", User.objects.count()])
+    ws_stats.append(["Usuarios Activos Hoy", User.objects.filter(last_login__date=date.today()).count()])
+
+    # Movimientos de inventario
+    ws_mov = wb.create_sheet(title="Movimientos")
+    ws_mov.append(['ID', 'Producto', 'Tipo', 'Cantidad', 'Usuario', 'Fecha'])
+
+    for mov in MovimientoInventario.objects.all():
+        ws_mov.append([
+            mov.id,
+            mov.producto.nombre,
+            mov.tipo,
+            mov.cantidad,
+            mov.usuario.username,
+            mov.fecha.strftime('%Y-%m-%d')
+        ])
+
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    response = HttpResponse(
+        buffer,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=dashboard_maestranza.xlsx'
+    return response

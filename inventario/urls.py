@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from .views import exportar_excel
+
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -35,4 +37,7 @@ urlpatterns = [
 
     # Logout
     path('logout/', views.logout_view, name='logout'),
+
+    path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('exportar-excel/', exportar_excel, name='exportar_excel'),
 ]
