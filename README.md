@@ -5,7 +5,7 @@ Despues instalar el archivo requirements.txt: pip install -r requirements.txt
 ***IMPORTANTE**
 Superuser creado
 USER: admin
-PASS: admin123
+PASS: admin123..
 
 
 -- COMANDOS PARA INCIAR PROGRAMA -- 
