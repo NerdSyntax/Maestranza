@@ -1,6 +1,14 @@
 import openpyxl
 import json
+from django.views.decorators.http import require_POST
+from .utils import enviar_alerta_stock_bajo
 
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import Producto
+from django.db.models import F
+
+from .utils import enviar_alerta_stock_bajo
 
 from django.db import models
 
@@ -313,6 +321,10 @@ def registrar_movimiento_directo(request, producto_id):
         else:
             producto.stock = max(producto.stock - cantidad, 0)
         producto.save()
+        
+        # 👇 AGREGA ESTA LÍNEA
+        enviar_alerta_stock_bajo()  # <-- Esto revisa si algún producto está por debajo del mínimo y envía correo
+
         messages.success(request, f"Movimiento '{tipo}' registrado para {producto.nombre}.")
     else:
         messages.error(request, "Error al registrar movimiento.")
@@ -425,3 +437,12 @@ def cambiar_bodega(request, producto_id):
         messages.error(request, "La bodega seleccionada no existe.")
 
     return redirect('producto_crud')
+
+
+@login_required
+@groups_required('Administrador', 'Comprador')
+@require_POST
+def enviar_alerta_stock_bajo_view(request):
+    enviar_alerta_stock_bajo()
+    messages.success(request, "📧 Correo de alerta enviado correctamente.")
+    return redirect('dashboard')

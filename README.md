@@ -16,7 +16,9 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 pip install django
 python -m pip install Pillow
 pip install openpyxl
- python manage.py runserver
+pip install python-decouple
+
+python manage.py runserver
 
 -- PENDIENTES POR HACER -- 
 
