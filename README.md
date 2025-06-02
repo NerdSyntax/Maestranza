@@ -18,6 +18,9 @@ python -m pip install Pillow
 pip install openpyxl
 pip install python-decouple
 
+touch .env
+
+
 python manage.py runserver
 
 -- PENDIENTES POR HACER -- 
