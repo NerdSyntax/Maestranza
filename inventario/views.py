@@ -407,3 +407,21 @@ def exportar_excel(request):
     )
     response['Content-Disposition'] = 'attachment; filename=dashboard_maestranza.xlsx'
     return response
+
+    
+@login_required
+@groups_required('Administrador', 'Gestor de Inventario')
+@require_POST
+def cambiar_bodega(request, producto_id):
+    producto = get_object_or_404(Producto, pk=producto_id)
+    nueva_bodega_id = request.POST.get('nueva_bodega')
+
+    try:
+        nueva_bodega = Bodega.objects.get(id=nueva_bodega_id)
+        producto.bodega = nueva_bodega
+        producto.save()
+        messages.success(request, f"Bodega del producto '{producto.nombre}' actualizada a '{nueva_bodega.nombre}'.")
+    except Bodega.DoesNotExist:
+        messages.error(request, "La bodega seleccionada no existe.")
+
+    return redirect('producto_crud')

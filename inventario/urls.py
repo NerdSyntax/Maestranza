@@ -35,6 +35,10 @@ urlpatterns = [
     path('productos/eliminar-historial/<int:historial_id>/', views.eliminar_historial_precio, name='eliminar_historial_precio'),
     path('productos/eliminar-movimiento/<int:movimiento_id>/', views.eliminar_movimiento, name='eliminar_movimiento'),
 
+    # Cambiar bodega
+    path('producto/<int:producto_id>/cambiar_bodega/', views.cambiar_bodega, name='cambiar_bodega'),
+
+
     # Logout
     path('logout/', views.logout_view, name='logout'),
 

@@ -59,7 +59,26 @@
           <td>{{ producto.nombre }}</td>
           <td><span class="badge bg-dark">{{ producto.serial_number }}</span></td>
           <td>{{ producto.categoria.nombre|default:"Sin categoría" }}</td>
-          <td>{{ producto.bodega.nombre }}</td>
+          
+          <!-- 👇 CAMBIO: Formulario para cambiar de bodega -->
+          <td>
+            {% if request.user.groups.first.name != 'Almacén' %}
+              <form method="post" action="{% url 'cambiar_bodega' producto.id %}" class="d-flex align-items-center">
+                {% csrf_token %}
+                <select name="nueva_bodega" class="form-select form-select-sm me-2" style="width: auto;">
+                  {% for b in bodegas %}
+                    <option value="{{ b.id }}" {% if producto.bodega and producto.bodega.id == b.id %}selected{% endif %}>
+                      {{ b.nombre }}
+                    </option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Cambiar</button>
+              </form>
+            {% else %}
+              {{ producto.bodega.nombre }}
+            {% endif %}
+          </td>
+
           <td>${{ producto.precio }}</td>
           <td>{{ producto.descripcion }}</td>
           <td>
