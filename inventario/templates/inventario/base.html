@@ -42,7 +42,9 @@
 
             {% elif user.groups.first.name == 'Comprador' %}
                 <li class="nav-item"><a class="nav-link" href="{% url 'tienda' %}">Tienda</a></li>
-             {% elif user.groups.first.name == 'Almacén' %}    
+                <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
+
+            {% elif user.groups.first.name == 'Almacén' %}    
                 <li class="nav-item"><a class="nav-link" href="{% url 'producto_crud' %}">CRUD Productos</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'tienda' %}">Tienda</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
@@ -56,7 +58,14 @@
 
       {% if user.is_authenticated %}
         <div class="d-flex align-items-center ms-auto">
-          <span class="navbar-text me-3">Hola, {{ user.username }}</span>
+          <span class="navbar-text me-3">
+            Hola, {{ user.username }}
+            {% if user.groups.first %}
+              ({{ user.groups.first.name }})
+            {% else %}
+              (Sin rol)
+            {% endif %}
+          </span>
           <a href="{% url 'logout' %}" class="btn btn-outline-light me-2">Cerrar sesión</a>
         </div>
       {% endif %}

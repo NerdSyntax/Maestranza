@@ -6,7 +6,7 @@
 <div class="container mt-5">
   <h2>Lista de Productos</h2>
 
-  <!-- Filtro por categoría -->
+  <!-- Filtros por categoría y bodega -->
   <form method="get" class="row mb-3">
     <div class="col-md-4">
       <select name="categoria" class="form-select" onchange="this.form.submit()">
@@ -18,6 +18,18 @@
         {% endfor %}
       </select>
     </div>
+
+    <div class="col-md-4">
+      <select name="bodega" class="form-select" onchange="this.form.submit()">
+        <option value="">Todas las bodegas</option>
+        {% for bod in bodegas %}
+          <option value="{{ bod.id }}" {% if bod.id == bodega_seleccionada %}selected{% endif %}>
+            {{ bod.nombre }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
     <div class="col-md-2">
       <a href="{% url 'producto_crud' %}" class="btn btn-secondary">Resetear</a>
     </div>
@@ -33,6 +45,7 @@
         <th>Nombre</th>
         <th>Serie</th>
         <th>Categoría</th>
+        <th><strong>Bodega</strong></th>
         <th>Precio</th>
         <th>Descripción</th>
         <th>Fecha de Vencimiento</th>
@@ -46,6 +59,7 @@
           <td>{{ producto.nombre }}</td>
           <td><span class="badge bg-dark">{{ producto.serial_number }}</span></td>
           <td>{{ producto.categoria.nombre|default:"Sin categoría" }}</td>
+          <td>{{ producto.bodega.nombre }}</td>
           <td>${{ producto.precio }}</td>
           <td>{{ producto.descripcion }}</td>
           <td>
@@ -79,10 +93,9 @@
 
         <!-- Detalles -->
         <tr class="collapse" id="historial{{ producto.id }}">
-          <td colspan="8">
+          <td colspan="9">
             <p><strong>Número de Serie:</strong> <span class="badge bg-secondary">{{ producto.serial_number }}</span></p>
 
-            <!-- Historial de Precios -->
             <strong>Historial de Precios:</strong>
             <table class="table table-sm table-bordered mt-2">
               <thead>
@@ -105,7 +118,7 @@
                       {% if h.usuario %}
                         {{ h.usuario.get_full_name|default:h.usuario.username }}
                       {% else %}
-                        <em class="text-muted">Desconocido</em>
+                        <em class="text-muted">Sin usuario</em>
                       {% endif %}
                     </td>
                     <td>{{ h.rol|default:"-" }}</td>
@@ -124,7 +137,6 @@
 
             <hr>
 
-            <!-- Registrar Movimiento -->
             <strong>Registrar Movimiento de Inventario:</strong>
             <form method="post" action="{% url 'registrar_movimiento_directo' producto.id %}" class="row g-2 mt-2">
               {% csrf_token %}
@@ -146,7 +158,6 @@
               </div>
             </form>
 
-            <!-- Últimos Movimientos -->
             <strong class="mt-4 d-block">Últimos Movimientos:</strong>
             <table class="table table-sm table-bordered mt-2">
               <thead>
@@ -173,7 +184,7 @@
                       {% if mov.usuario %}
                         {{ mov.usuario.get_full_name|default:mov.usuario.username }}
                       {% else %}
-                        <em class="text-muted">Desconocido</em>
+                        <em class="text-muted">Sin usuario</em>
                       {% endif %}
                     </td>
                     <td>{{ mov.rol|default:"-" }}</td>
@@ -192,9 +203,7 @@
           </td>
         </tr>
       {% empty %}
-        <tr>
-          <td colspan="8" class="text-center">No hay productos registrados.</td>
-        </tr>
+        <tr><td colspan="9" class="text-center">No hay productos registrados.</td></tr>
       {% endfor %}
     </tbody>
   </table>

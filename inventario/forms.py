@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from datetime import date
-from .models import Producto, CategoriaProducto, MovimientoInventario
+from .models import Producto, CategoriaProducto, MovimientoInventario, Bodega
 
 
 class ProductoForm(forms.ModelForm):
@@ -13,11 +13,15 @@ class ProductoForm(forms.ModelForm):
             'stock': forms.NumberInput(attrs={'min': 0}),
             'stock_minimo': forms.NumberInput(attrs={'min': 0}),
             'categoria': forms.Select(),
+            'bodega': forms.Select(),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         self.fields['categoria'].empty_label = "Seleccione una categoría"
+        self.fields['bodega'].empty_label = "Seleccione una bodega"
+
         for name, field in self.fields.items():
             field.widget.attrs.setdefault('class', 'form-control')
 

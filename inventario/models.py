@@ -2,7 +2,18 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 
+# ------------------------
+# MODELO DE BODEGA
+# ------------------------
+class Bodega(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
 
+    def __str__(self):
+        return self.nombre
+
+# ------------------------
+# PROVEEDORES
+# ------------------------
 class Proveedor(models.Model):
     nombre = models.CharField(max_length=100)
     contacto = models.CharField(max_length=100, blank=True)
@@ -13,14 +24,18 @@ class Proveedor(models.Model):
     def __str__(self):
         return self.nombre
 
-
+# ------------------------
+# CATEGORÍA DE PRODUCTO
+# ------------------------
 class CategoriaProducto(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.nombre
 
-
+# ------------------------
+# PRODUCTO
+# ------------------------
 class Producto(models.Model):
     nombre = models.CharField(max_length=100)
     categoria = models.ForeignKey(
@@ -45,6 +60,14 @@ class Producto(models.Model):
         help_text="Número de serie generado automáticamente"
     )
 
+    bodega = models.ForeignKey(
+        Bodega,
+        on_delete=models.CASCADE,
+        related_name='productos',
+        null=True,       # importante para migrar sin errores
+        blank=True
+    )
+
     def save(self, *args, **kwargs):
         if not self.serial_number:
             self.serial_number = self.generar_serial_unico()
@@ -67,7 +90,9 @@ class Producto(models.Model):
     def __str__(self):
         return f"{self.nombre} [{self.serial_number}]"
 
-
+# ------------------------
+# HISTORIAL DE PRECIOS
+# ------------------------
 class HistorialPrecio(models.Model):
     producto = models.ForeignKey(
         Producto,
@@ -81,20 +106,16 @@ class HistorialPrecio(models.Model):
         User,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
-        help_text="Usuario que modificó el precio"
+        blank=True
     )
-    rol = models.CharField(
-        max_length=50,
-        null=True,
-        blank=True,
-        help_text="Rol del usuario que hizo el cambio"
-    )
+    rol = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
         return f"{self.producto.nombre} - ${self.precio} - {self.fecha.strftime('%d/%m/%Y %H:%M')}"
 
-
+# ------------------------
+# MOVIMIENTO DE INVENTARIO
+# ------------------------
 class MovimientoInventario(models.Model):
     TIPO_CHOICES = [
         ('entrada', 'Entrada'),
@@ -111,15 +132,9 @@ class MovimientoInventario(models.Model):
         User,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
-        help_text="Usuario que registró el movimiento"
+        blank=True
     )
-    rol = models.CharField(
-        max_length=50,
-        null=True,
-        blank=True,
-        help_text="Rol del usuario que hizo el movimiento"
-    )
+    rol = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
         return f"{self.tipo.title()} - {self.producto.nombre} - {self.cantidad}"

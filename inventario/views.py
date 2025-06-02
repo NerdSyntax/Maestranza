@@ -1,5 +1,12 @@
 import openpyxl
 import json
+
+
+from django.db import models
+
+from .models import Producto, CategoriaProducto, Bodega
+
+
 from io import BytesIO
 from django.utils.timezone import now
 from django.http import HttpResponse
@@ -102,18 +109,29 @@ def registro_inventario(request):
 @groups_required('Gestor de Inventario', 'Almacén')
 def producto_crud(request):
     categoria_id = request.GET.get('categoria')
+    bodega_id = request.GET.get('bodega')  # 👈 NUEVO
+
     categorias = CategoriaProducto.objects.order_by('nombre')
+    bodegas = Bodega.objects.order_by('nombre')  # 👈 NUEVO
     productos = Producto.objects.all()
+
     if categoria_id:
         productos = productos.filter(categoria_id=categoria_id)
+
+    if bodega_id:
+        productos = productos.filter(bodega_id=bodega_id)  # 👈 NUEVO
+
     if 'delete' in request.GET:
         producto = get_object_or_404(Producto, pk=request.GET['delete'])
         producto.delete()
         return redirect('producto_crud')
+
     return render(request, 'inventario/producto_crud.html', {
         'productos': productos,
         'categorias': categorias,
+        'bodegas': bodegas,  # 👈 NUEVO
         'categoria_seleccionada': int(categoria_id) if categoria_id else None,
+        'bodega_seleccionada': int(bodega_id) if bodega_id else None,
         'today': date.today(),
         'today_plus_7': date.today() + timedelta(days=7),
     })
@@ -308,7 +326,7 @@ def logout_view(request):
     return redirect('login')
 
 @login_required
-@groups_required('Administrador', 'Gestor de Inventario', 'Almacén')
+@groups_required('Administrador', 'Gestor de Inventario', 'Almacén','Comprador')
 def dashboard_view(request):
     total_productos = Producto.objects.count()
     stock_critico = Producto.objects.filter(stock__lt=5).count()
@@ -323,6 +341,9 @@ def dashboard_view(request):
     labels_productos = [p.nombre for p in productos[:6]]
     data_stock = [p.stock for p in productos[:6]]
 
+    # 🔔 Productos sin stock o en stock mínimo
+    productos_stock_minimo = Producto.objects.filter(stock__lte=models.F('stock_minimo'))
+
     context = {
         'total_productos': total_productos,
         'stock_critico': stock_critico,
@@ -332,6 +353,7 @@ def dashboard_view(request):
         'data_categorias': json.dumps(data_categorias),
         'labels_productos': json.dumps(labels_productos),
         'data_stock': json.dumps(data_stock),
+        'productos_stock_minimo': productos_stock_minimo,  # 📌
     }
 
     return render(request, 'inventario/dashboard.html', context)
