@@ -1,33 +1,30 @@
-document.addEventListener('DOMContentLoaded', function () {
-  const categoriaSelect = document.getElementById('id_categoria');
-  const vencimientoGroup = document.getElementById('fecha-vencimiento-group');
-  const fechaVencimientoInput = document.getElementById('id_fecha_vencimiento');
-  const stockInput = document.getElementById('id_stock');
-  const stockMinimoInput = document.getElementById('id_stock_minimo');
-  const alertaError = document.getElementById('alerta-error');
-  const form = document.querySelector('form');
-
-  function mostrarFechaSiEsLubricante() {
-    const selectedOption = categoriaSelect.options[categoriaSelect.selectedIndex];
-    const categoriaTexto = selectedOption ? selectedOption.text.toLowerCase().trim() : "";
-
-    if (categoriaTexto.includes("lubricante") && categoriaTexto.includes("vencimiento")) {
-      vencimientoGroup.style.display = 'block';
-    } else {
-      vencimientoGroup.style.display = 'none';
-      if (fechaVencimientoInput) fechaVencimientoInput.value = "";
-    }
-  }
+document.addEventListener("DOMContentLoaded", function () {
+  const categoriaSelect = document.getElementById("id_categoria");
+  const vencimientoGroup = document.getElementById("fecha-vencimiento-group");
+  const alertaError = document.getElementById("alerta-error");
+  const stockInput = document.getElementById("id_stock");
+  const stockMinimoInput = document.getElementById("id_stock_minimo");
+  const fechaVencimientoInput = document.getElementById("id_fecha_vencimiento");
+  const form = document.querySelector("form");
 
   function mostrarAlerta(mensaje) {
     alertaError.textContent = mensaje;
-    alertaError.classList.remove('d-none');
-    alertaError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    alertaError.classList.remove("d-none");
+    alertaError.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function ocultarAlerta() {
-    alertaError.classList.add('d-none');
-    alertaError.textContent = '';
+    alertaError.classList.add("d-none");
+    alertaError.textContent = "";
+  }
+
+  function toggleVencimiento() {
+    const selectedText = categoriaSelect.options[categoriaSelect.selectedIndex]?.text.toLowerCase().trim();
+    if (selectedText === "lubricantes") {
+      vencimientoGroup.style.display = "block";
+    } else {
+      vencimientoGroup.style.display = "none";
+    }
   }
 
   function validarFormulario(event) {
@@ -44,21 +41,18 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    if (categoriaTexto.includes("lubricante") && categoriaTexto.includes("vencimiento")) {
-      if (!fechaVencimiento) {
-        event.preventDefault();
-        mostrarAlerta("Debe seleccionar una fecha de vencimiento para productos de categoria: Lubricantes con vencimiento.");
-        return;
-      }
+    if (categoriaTexto === "lubricantes" && !fechaVencimiento) {
+      event.preventDefault();
+      mostrarAlerta("Debe seleccionar una fecha de vencimiento para productos de categoría: Lubricantes.");
+      return;
     }
   }
 
-  if (categoriaSelect) {
-    mostrarFechaSiEsLubricante();
-    categoriaSelect.addEventListener('change', mostrarFechaSiEsLubricante);
-  }
-
-  if (form) {
-    form.addEventListener('submit', validarFormulario);
+  if (categoriaSelect && vencimientoGroup && form) {
+    toggleVencimiento();
+    categoriaSelect.addEventListener("change", toggleVencimiento);
+    form.addEventListener("submit", validarFormulario);
+  } else {
+    console.log("Algunos elementos no se encontraron en el DOM.");
   }
 });
