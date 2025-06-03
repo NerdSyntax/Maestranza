@@ -15,17 +15,17 @@
 
   {# 🔔 Alerta solo para Administrador y Comprador #}
   {% if productos_stock_minimo and user.is_authenticated and user.groups.first.name in 'Administrador,Comprador' %}
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-      <h5>⚠️ Atención: Productos con stock bajo o sin stock</h5>
-      <ul class="mb-0">
-        {% for p in productos_stock_minimo %}
-          <li>
-            <strong>{{ p.nombre }}</strong> — Stock: {{ p.stock }} (mínimo: {{ p.stock_minimo }})
-          </li>
-        {% endfor %}
-      </ul>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-    </div>
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <h5>⚠️ Atención: Productos con stock bajo o sin stock</h5>
+    <ul class="mb-0">
+      {% for p in productos_stock_minimo %}
+      <li>
+        <strong>{{ p.nombre }}</strong> — Stock: {{ p.stock }} (mínimo: {{ p.stock_minimo }})
+      </li>
+      {% endfor %}
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+  </div>
   {% endif %}
 
   <div class="row text-center mb-4">
@@ -57,14 +57,11 @@
 
   <div class="row g-4">
     <div class="col-md-6">
-      <canvas id="graficoCategorias"
-              data-labels='{{ labels_categorias|safe }}'
-              data-data='{{ data_categorias|safe }}'></canvas>
+      <canvas id="graficoCategorias" data-labels='{{ labels_categorias|safe }}'
+        data-data='{{ data_categorias|safe }}'></canvas>
     </div>
     <div class="col-md-6">
-      <canvas id="graficoStock"
-              data-labels='{{ labels_productos|safe }}'
-              data-data='{{ data_stock|safe }}'></canvas>
+      <canvas id="graficoStock" data-labels='{{ labels_productos|safe }}' data-data='{{ data_stock|safe }}'></canvas>
     </div>
     <div class="col-12 mt-4 text-center">
       <a class="btn btn-outline-success" href="{% url 'exportar_excel' %}">

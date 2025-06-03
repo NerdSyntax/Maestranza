@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.timezone import now
+from django.core.exceptions import ValidationError
 
 # ------------------------
 # MODELO DE BODEGA
@@ -10,6 +11,7 @@ class Bodega(models.Model):
 
     def __str__(self):
         return self.nombre
+
 
 # ------------------------
 # PROVEEDORES
@@ -24,6 +26,7 @@ class Proveedor(models.Model):
     def __str__(self):
         return self.nombre
 
+
 # ------------------------
 # CATEGORÍA DE PRODUCTO
 # ------------------------
@@ -32,6 +35,7 @@ class CategoriaProducto(models.Model):
 
     def __str__(self):
         return self.nombre
+
 
 # ------------------------
 # PRODUCTO
@@ -64,14 +68,20 @@ class Producto(models.Model):
         Bodega,
         on_delete=models.CASCADE,
         related_name='productos',
-        null=True,       # importante para migrar sin errores
+        null=True,
         blank=True
     )
 
     def save(self, *args, **kwargs):
+        self.full_clean()  
         if not self.serial_number:
             self.serial_number = self.generar_serial_unico()
         super().save(*args, **kwargs)
+
+    def clean(self):
+        if self.categoria and self.categoria.nombre.strip().lower() == "lubricante con vencimiento":
+            if not self.fecha_vencimiento:
+                raise ValidationError("Los productos de categoría 'Lubricante con vencimiento' deben tener fecha de vencimiento.")
 
     def generar_serial_unico(self):
         year = now().year
@@ -89,6 +99,12 @@ class Producto(models.Model):
 
     def __str__(self):
         return f"{self.nombre} [{self.serial_number}]"
+
+    def is_expired(self):
+        if self.fecha_vencimiento:
+            return self.fecha_vencimiento < now().date()
+        return False
+
 
 # ------------------------
 # HISTORIAL DE PRECIOS
@@ -112,6 +128,7 @@ class HistorialPrecio(models.Model):
 
     def __str__(self):
         return f"{self.producto.nombre} - ${self.precio} - {self.fecha.strftime('%d/%m/%Y %H:%M')}"
+
 
 # ------------------------
 # MOVIMIENTO DE INVENTARIO
@@ -138,3 +155,4 @@ class MovimientoInventario(models.Model):
 
     def __str__(self):
         return f"{self.tipo.title()} - {self.producto.nombre} - {self.cantidad}"
+

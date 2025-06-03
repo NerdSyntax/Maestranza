@@ -1,7 +1,7 @@
 {% extends 'inventario/base.html' %}
 {% load static %}
 
-{% block title %}Tienda{% endblock %}
+{% block title %}Catálogo{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'inventario/css/tienda.css' %}">
@@ -12,12 +12,6 @@
 <header class="header">
   <div class="header-content container d-flex justify-content-between align-items-center">
     <h2 class="logotipo">Maestranza <span>Store</span></h2>
-    <div class="btn-cart position-relative">
-      <button type="button" id="abrir-carrito" class="btn btn-primary">
-        <i class="fa-solid fa-cart-shopping icon-cart"></i>
-      </button>
-      <span id="cartCount" class="badge bg-danger position-absolute top-0 start-100 translate-middle">0</span>
-    </div>
   </div>
 </header>
 
@@ -38,53 +32,12 @@
         <div class="card-body">
           <h5 class="card-title">{{ producto.nombre }}</h5>
           <p class="card-text">{{ producto.descripcion }}</p>
-          <p class="text-primary fw-bold">${{ producto.precio }}</p>
-          <button class="btn btn-outline-primary w-100 agregar-carrito"
-                  data-id="{{ producto.id }}"
-                  data-nombre="{{ producto.nombre }}"
-                  data-precio="{{ producto.precio }}"
-                  data-img="{% if producto.imagen %}{{ producto.imagen.url }}{% else %}{% static 'inventario/img/default.jpg' %}{% endif %}">
-            Agregar al carrito
-          </button>
+          <!-- <p class="text-primary fw-bold">${{ producto.precio }}</p> -->
         </div>
+
       </div>
     </div>
     {% endfor %}
   </div>
 </div>
-
-<!-- Carrito -->
-<div class="cart" id="carrito-modal" style="display: none; position:fixed; top:100px; right:20px; background:white; border:1px solid #ccc; border-radius:10px; padding:15px; width:400px; max-height:500px; overflow:auto; box-shadow:0 4px 8px rgba(0,0,0,0.2); z-index:9999;">
-  <div class="cart-responsive">
-    <div class="d-flex justify-content-between mb-2">
-      <h5 class="fw-bold">🛒 Tu carrito</h5>
-      <button class="btn btn-sm btn-secondary" id="cerrarCarrito">✖</button>
-    </div>
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Imagen</th>
-          <th>Producto</th>
-          <th>Precio</th>
-          <th>Cantidad</th>
-          <th>Eliminar</th>
-        </tr>
-      </thead>
-      <tbody id="contentProducts"></tbody>
-      <tfoot>
-        <tr>
-          <td colspan="5" class="text-end"><strong>Total: $<span id="total">0</span></strong></td>
-        </tr>
-        <tr>
-          <td colspan="5">
-            <button class="btn btn-success w-100 mb-2" id="comprarBtn">Comprar</button>
-            <button class="btn btn-danger w-100" id="emptyCart">Vaciar carrito</button>
-          </td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
-</div>
-
-<script src="{% static 'inventario/js/carrito.js' %}"></script>
 {% endblock %}

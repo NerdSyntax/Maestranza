@@ -35,7 +35,7 @@
     </div>
   </form>
 
-  {% if request.user.groups.first.name != 'Almacén' %}
+  {% if request.user.groups.first and request.user.groups.first.name != 'Almacén' %}
     <a href="{% url 'registro_producto' %}" class="btn btn-primary mb-3">Agregar Producto</a>
   {% endif %}
 
@@ -46,7 +46,9 @@
         <th>Serie</th>
         <th>Categoría</th>
         <th><strong>Bodega</strong></th>
-        <th>Precio</th>
+        {% if request.user.groups.first and request.user.groups.first.name == 'Administrador' %}
+          <th>Precio</th>
+        {% endif %}
         <th>Descripción</th>
         <th>Fecha de Vencimiento</th>
         <th>Stock</th>
@@ -59,10 +61,8 @@
           <td>{{ producto.nombre }}</td>
           <td><span class="badge bg-dark">{{ producto.serial_number }}</span></td>
           <td>{{ producto.categoria.nombre|default:"Sin categoría" }}</td>
-          
-          <!-- 👇 CAMBIO: Formulario para cambiar de bodega -->
           <td>
-            {% if request.user.groups.first.name != 'Almacén' %}
+            {% if request.user.groups.first and request.user.groups.first.name != 'Almacén' %}
               <form method="post" action="{% url 'cambiar_bodega' producto.id %}" class="d-flex align-items-center">
                 {% csrf_token %}
                 <select name="nueva_bodega" class="form-select form-select-sm me-2" style="width: auto;">
@@ -79,7 +79,10 @@
             {% endif %}
           </td>
 
-          <td>${{ producto.precio }}</td>
+          {% if request.user.groups.first and request.user.groups.first.name == 'Administrador' %}
+            <td>${{ producto.precio }}</td>
+          {% endif %}
+
           <td>{{ producto.descripcion }}</td>
           <td>
             {% if producto.fecha_vencimiento %}
@@ -94,6 +97,7 @@
               <span class="text-muted">Sin fecha</span>
             {% endif %}
           </td>
+
           <td>
             {% if producto.stock <= producto.stock_minimo %}
               <span class="badge bg-danger">Bajo ({{ producto.stock }})</span>
@@ -101,8 +105,9 @@
               <span class="badge bg-success">{{ producto.stock }}</span>
             {% endif %}
           </td>
+
           <td>
-            {% if request.user.groups.first.name != 'Almacén' %}
+            {% if request.user.groups.first and request.user.groups.first.name != 'Almacén' %}
               <a href="{% url 'editar_producto' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
               <a href="?delete={{ producto.id }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este producto?');">Eliminar</a>
             {% endif %}
@@ -115,44 +120,42 @@
           <td colspan="9">
             <p><strong>Número de Serie:</strong> <span class="badge bg-secondary">{{ producto.serial_number }}</span></p>
 
-            <strong>Historial de Precios:</strong>
-            <table class="table table-sm table-bordered mt-2">
-              <thead>
-                <tr>
-                  <th>Precio</th>
-                  <th>Fecha</th>
-                  <th>Usuario</th>
-                  <th>Rol</th>
-                  {% if request.user.groups.first.name == 'Administrador' %}
-                    <th>Acción</th>
-                  {% endif %}
-                </tr>
-              </thead>
-              <tbody>
-                {% for h in producto.historial_precios.all|dictsortreversed:"fecha" %}
+            {% if request.user.groups.first and request.user.groups.first.name == 'Administrador' %}
+              <strong>Historial de Precios:</strong>
+              <table class="table table-sm table-bordered mt-2">
+                <thead>
                   <tr>
-                    <td>${{ h.precio }}</td>
-                    <td>{{ h.fecha|date:"d/m/Y H:i" }}</td>
-                    <td>
-                      {% if h.usuario %}
-                        {{ h.usuario.get_full_name|default:h.usuario.username }}
-                      {% else %}
-                        <em class="text-muted">Sin usuario</em>
-                      {% endif %}
-                    </td>
-                    <td>{{ h.rol|default:"-" }}</td>
-                    {% if request.user.groups.first.name == 'Administrador' %}
+                    <th>Precio</th>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for h in producto.historial_precios.all|dictsortreversed:"fecha" %}
+                    <tr>
+                      <td>${{ h.precio }}</td>
+                      <td>{{ h.fecha|date:"d/m/Y H:i" }}</td>
+                      <td>
+                        {% if h.usuario %}
+                          {{ h.usuario.get_full_name|default:h.usuario.username }}
+                        {% else %}
+                          <em class="text-muted">Sin usuario</em>
+                        {% endif %}
+                      </td>
+                      <td>{{ h.rol|default:"-" }}</td>
                       <td>
                         <a href="{% url 'eliminar_historial_precio' h.id %}" class="btn btn-danger btn-sm"
                           onclick="return confirm('¿Eliminar este historial de precio?');">🗑</a>
                       </td>
-                    {% endif %}
-                  </tr>
-                {% empty %}
-                  <tr><td colspan="5">No hay historial.</td></tr>
-                {% endfor %}
-              </tbody>
-            </table>
+                    </tr>
+                  {% empty %}
+                    <tr><td colspan="5">No hay historial.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% endif %}
 
             <hr>
 
@@ -187,7 +190,7 @@
                   <th>Fecha</th>
                   <th>Usuario</th>
                   <th>Rol</th>
-                  {% if request.user.groups.first.name == 'Administrador' %}
+                  {% if request.user.groups.first and request.user.groups.first.name == 'Administrador' %}
                     <th>Acción</th>
                   {% endif %}
                 </tr>
@@ -207,7 +210,7 @@
                       {% endif %}
                     </td>
                     <td>{{ mov.rol|default:"-" }}</td>
-                    {% if request.user.groups.first.name == 'Administrador' %}
+                    {% if request.user.groups.first and request.user.groups.first.name == 'Administrador' %}
                       <td>
                         <a href="{% url 'eliminar_movimiento' mov.id %}" class="btn btn-danger btn-sm"
                           onclick="return confirm('¿Eliminar este movimiento?');">🗑</a>

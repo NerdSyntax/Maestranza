@@ -4,6 +4,10 @@ from datetime import date
 from .models import Producto, CategoriaProducto, MovimientoInventario, Bodega
 
 
+from django import forms
+from datetime import date
+from .models import Producto
+
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
@@ -11,7 +15,11 @@ class ProductoForm(forms.ModelForm):
         widgets = {
             'fecha_vencimiento': forms.DateInput(attrs={'type': 'date'}),
             'stock': forms.NumberInput(attrs={'min': 0}),
-            'stock_minimo': forms.NumberInput(attrs={'min': 0}),
+            'stock_minimo': forms.NumberInput(attrs={
+                'min': 0,
+                'readonly': 'readonly',
+                'placeholder': '5'
+            }),
             'categoria': forms.Select(),
             'bodega': forms.Select(),
         }
@@ -19,9 +27,15 @@ class ProductoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # 🔒 Valor fijo de stock mínimo
+        self.fields['stock_minimo'].initial = 5
+        self.fields['stock_minimo'].disabled = True
+
+        # Etiquetas vacías
         self.fields['categoria'].empty_label = "Seleccione una categoría"
         self.fields['bodega'].empty_label = "Seleccione una bodega"
 
+        # Bootstrap classes
         for name, field in self.fields.items():
             field.widget.attrs.setdefault('class', 'form-control')
 
@@ -33,14 +47,19 @@ class ProductoForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        stock = cleaned_data.get('stock')
-        stock_minimo = cleaned_data.get('stock_minimo')
 
-        if stock is not None and stock < 0:
-            self.add_error('stock', "El stock no puede ser negativo.")
-        if stock_minimo is not None and stock_minimo < 0:
-            self.add_error('stock_minimo', "El stock mínimo no puede ser negativo.")
+        stock = cleaned_data.get('stock')
+        stock_minimo = 5  # Valor fijo esperado
+
+        if stock is not None and stock < stock_minimo:
+            self.add_error('stock', f"El stock no puede ser menor al stock mínimo ({stock_minimo}).")
+
+        # 🔐 Reforzar que el stock mínimo no pueda ser sobreescrito
+        cleaned_data['stock_minimo'] = stock_minimo
+
         return cleaned_data
+
+        
 
 
 class UsuarioForm(forms.ModelForm):

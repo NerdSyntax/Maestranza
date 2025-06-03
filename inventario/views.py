@@ -31,7 +31,7 @@ from datetime import date, timedelta
 from .models import Producto, HistorialPrecio, MovimientoInventario, CategoriaProducto
 from .forms import ProductoForm, UsuarioForm, MovimientoInventarioForm
 
-# 🎯 Decorador: permite un grupo o admin
+
 def group_required_or_admin(group_name):
     def check_group(user):
         return user.is_authenticated and (
@@ -39,7 +39,6 @@ def group_required_or_admin(group_name):
         )
     return user_passes_test(check_group)
 
-# ✅ Decorador: permite múltiples grupos o admin
 def groups_required(*group_names):
     def check_groups(user):
         return user.is_authenticated and (
@@ -98,7 +97,7 @@ def registro_usuario(request):
                     last_name=last_name,
                     password=password
                 )
-                # 🔥 No se asigna grupo aquí, queda sin rol
+            
                 return redirect('login')
             else:
                 return render(request, 'inventario/registro_usuario.html', {
@@ -117,17 +116,17 @@ def registro_inventario(request):
 @groups_required('Gestor de Inventario', 'Almacén')
 def producto_crud(request):
     categoria_id = request.GET.get('categoria')
-    bodega_id = request.GET.get('bodega')  # 👈 NUEVO
+    bodega_id = request.GET.get('bodega')  
 
     categorias = CategoriaProducto.objects.order_by('nombre')
-    bodegas = Bodega.objects.order_by('nombre')  # 👈 NUEVO
+    bodegas = Bodega.objects.order_by('nombre')  
     productos = Producto.objects.all()
 
     if categoria_id:
         productos = productos.filter(categoria_id=categoria_id)
 
     if bodega_id:
-        productos = productos.filter(bodega_id=bodega_id)  # 👈 NUEVO
+        productos = productos.filter(bodega_id=bodega_id)  
 
     if 'delete' in request.GET:
         producto = get_object_or_404(Producto, pk=request.GET['delete'])
@@ -137,7 +136,7 @@ def producto_crud(request):
     return render(request, 'inventario/producto_crud.html', {
         'productos': productos,
         'categorias': categorias,
-        'bodegas': bodegas,  # 👈 NUEVO
+        'bodegas': bodegas,  
         'categoria_seleccionada': int(categoria_id) if categoria_id else None,
         'bodega_seleccionada': int(bodega_id) if bodega_id else None,
         'today': date.today(),
@@ -322,8 +321,8 @@ def registrar_movimiento_directo(request, producto_id):
             producto.stock = max(producto.stock - cantidad, 0)
         producto.save()
         
-        # 👇 AGREGA ESTA LÍNEA
-        enviar_alerta_stock_bajo()  # <-- Esto revisa si algún producto está por debajo del mínimo y envía correo
+      
+        enviar_alerta_stock_bajo()  
 
         messages.success(request, f"Movimiento '{tipo}' registrado para {producto.nombre}.")
     else:
@@ -353,7 +352,7 @@ def dashboard_view(request):
     labels_productos = [p.nombre for p in productos[:6]]
     data_stock = [p.stock for p in productos[:6]]
 
-    # 🔔 Productos sin stock o en stock mínimo
+    
     productos_stock_minimo = Producto.objects.filter(stock__lte=models.F('stock_minimo'))
 
     context = {
@@ -387,7 +386,7 @@ def exportar_excel(request):
             p.stock
         ])
 
-    # Estadísticas
+   
     ws_stats = wb.create_sheet(title="Estadísticas")
     ws_stats.append(["Métrica", "Valor"])
     ws_stats.append(["Total Productos", Producto.objects.count()])
@@ -395,7 +394,7 @@ def exportar_excel(request):
     ws_stats.append(["Usuarios Registrados", User.objects.count()])
     ws_stats.append(["Usuarios Activos Hoy", User.objects.filter(last_login__date=date.today()).count()])
 
-    # Movimientos de inventario
+    
     ws_mov = wb.create_sheet(title="Movimientos")
     ws_mov.append(['ID', 'Producto', 'Tipo', 'Cantidad', 'Usuario', 'Fecha'])
 

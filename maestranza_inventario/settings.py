@@ -1,17 +1,19 @@
-"""
-Django settings for maestranza_inventario project.
-"""
-
 from pathlib import Path
-from decouple import config
+from decouple import config, Csv
+import sys
+
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# 🔐 Secret Key & Debug
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', cast=bool)
 
-ALLOWED_HOSTS = []
+# 🌐 Allowed Hosts
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
+# 🧱 Aplicaciones
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -19,9 +21,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'inventario',
+    'inventario',  # Tu app principal
 ]
 
+# 🛡 Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -32,8 +35,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# 🔗 URLs y WSGI
 ROOT_URLCONF = 'maestranza_inventario.urls'
+WSGI_APPLICATION = 'maestranza_inventario.wsgi.application'
 
+# 🗂 Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -49,8 +55,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'maestranza_inventario.wsgi.application'
-
+# 🧮 Base de Datos
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -58,6 +63,7 @@ DATABASES = {
     }
 }
 
+# 🔐 Validadores de Contraseña
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -65,25 +71,38 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# 🌍 Internacionalización
 LANGUAGE_CODE = 'es-es'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# 📂 Archivos estáticos y multimedia
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# 🔒 Login
 LOGIN_URL = '/login/'
 
-# 🔐 Email Config (con .env)
+# 🔧 Configuración por defecto
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# 📧 Configuración de correo electrónico con sanitización
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+# 🛡 Limpieza de caracteres no ASCII (como \xa0)
+def clean_password(raw_pass):
+    try:
+        return raw_pass.encode("ascii").decode("ascii")
+    except UnicodeEncodeError:
+        print("⚠ WARNING: EMAIL_HOST_PASSWORD contiene caracteres inválidos.", file=sys.stderr)
+        return raw_pass.replace('\xa0', '').strip()
+
+EMAIL_HOST_PASSWORD = clean_password(config('EMAIL_HOST_PASSWORD'))
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
