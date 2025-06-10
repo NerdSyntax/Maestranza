@@ -31,6 +31,10 @@ from datetime import date, timedelta
 from .models import Producto, HistorialPrecio, MovimientoInventario, CategoriaProducto
 from .forms import ProductoForm, UsuarioForm, MovimientoInventarioForm
 
+from django.contrib.auth import authenticate
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
 
 def group_required_or_admin(group_name):
     def check_group(user):
@@ -47,7 +51,8 @@ def groups_required(*group_names):
     return user_passes_test(check_groups)
 
 def index(request):
-    return render(request, 'inventario/index.html')
+    productos = Producto.objects.all()  # o filtrado si quieres
+    return render(request, 'inventario/index.html', {'productos': productos})
 
 def login_view(request):
     if request.method == 'POST':
@@ -56,17 +61,10 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
-            if user.groups.filter(name='Administrador').exists():
-                return redirect('usuarios_crud')
-            elif user.groups.filter(name='Gestor de Inventario').exists():
-                return redirect('producto_crud')
-            elif user.groups.filter(name='Comprador').exists():
-                return redirect('tienda')
-            else:
-                return redirect('index')
-        else:
+            return redirect('index')  
             messages.error(request, 'Usuario o contraseña incorrectos.')
     return render(request, 'inventario/login.html')
+
 
 @login_required
 @groups_required('Comprador', 'Gestor de Inventario', 'Almacén')

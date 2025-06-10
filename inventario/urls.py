@@ -46,6 +46,6 @@ urlpatterns = [
     path('exportar-excel/', exportar_excel, name='exportar_excel'),
 
     path('alerta-stock/', views.enviar_alerta_stock_bajo_view, name='enviar_alerta_stock_bajo'),
-
+    path('', views.index, name='index'),
 
 ]
