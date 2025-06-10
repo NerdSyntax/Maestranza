@@ -3,12 +3,12 @@ from decouple import config, Csv
 import sys
 
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
 # 🔐 Secret Key & Debug
-SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', cast=bool)
+SECRET_KEY = 'django-insecure-gdacrblv!o(4((^6e&2%g+ctkuz$0c1#%z27t9d4dnd-=f=^2m'
+DEBUG = True
 
 # 🌐 Allowed Hosts
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
@@ -94,7 +94,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_USER = 'maestranzaduoc@gmail.com'
 
 # 🛡 Limpieza de caracteres no ASCII (como \xa0)
 def clean_password(raw_pass):
@@ -104,5 +104,5 @@ def clean_password(raw_pass):
         print("⚠ WARNING: EMAIL_HOST_PASSWORD contiene caracteres inválidos.", file=sys.stderr)
         return raw_pass.replace('\xa0', '').strip()
 
-EMAIL_HOST_PASSWORD = clean_password(config('EMAIL_HOST_PASSWORD'))
+EMAIL_HOST_PASSWORD = clean_password('tcwb tvky ilel wwkd')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
