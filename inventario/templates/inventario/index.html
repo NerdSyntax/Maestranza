@@ -3,6 +3,127 @@
 {% block title %}Inicio{% endblock %}
 
 {% block content %}
-<h2>Bienvenido al Sistema de Inventario</h2>
-<p>Esta es la página principal.</p>
+<div class="container py-5">
+
+  {% if user.is_authenticated %}
+    {% with rol=user.groups.first.name %}
+      <div class="text-center mb-5">
+        <h1 class="display-4">Bienvenido, {{ user.username }}</h1>
+        <p class="lead">Rol: {{ rol }}</p>
+      </div>
+
+      <div class="row g-4">
+        {% if rol == 'Administrador' %}
+          <div class="col-md-3">
+            <div class="card h-100 text-center shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">Usuarios</h5>
+                <p class="card-text">Gestiona los usuarios del sistema.</p>
+                <a href="{% url 'usuarios_crud' %}" class="btn btn-outline-primary">Ir</a>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if rol in 'AdministradorGestor de InventarioAlmacén' %}
+          <div class="col-md-3">
+            <div class="card h-100 text-center shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">CRUD Productos</h5>
+                <p class="card-text">Edita o elimina productos del inventario.</p>
+                <a href="{% url 'producto_crud' %}" class="btn btn-outline-primary">Ir</a>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if rol in 'AdministradorGestor de Inventario' %}
+          <div class="col-md-3">
+            <div class="card h-100 text-center shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">Registrar Producto</h5>
+                <p class="card-text">Agrega nuevos artículos al inventario.</p>
+                <a href="{% url 'registro_producto' %}" class="btn btn-outline-primary">Ir</a>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if rol in 'AdministradorGestor de InventarioCompradorAlmacén' %}
+          <div class="col-md-3">
+            <div class="card h-100 text-center shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">Catálogo</h5>
+                <p class="card-text">Consulta los productos disponibles.</p>
+                <a href="{% url 'tienda' %}" class="btn btn-outline-primary">Ir</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="card h-100 text-center shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">Dashboard</h5>
+                <p class="card-text">Visualiza información clave.</p>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">Ir</a>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    {% endwith %}
+
+  {% else %}
+    <!-- VISITANTES NO AUTENTICADOS -->
+    <div class="text-center mb-5">
+      <h1 class="display-5">Bienvenido a Maestranza Unidos S.A.</h1>
+      <p class="lead">Soluciones industriales y soporte técnico para el sector minero y productivo nacional.</p>
+      <a href="{% url 'login' %}" class="btn btn-primary mt-3">Iniciar Sesión</a>
+    </div>
+
+    <h3 class="mb-4 text-center">Productos Destacados</h3>
+
+    {% if productos %}
+      <div id="productosCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+
+          {% for producto in productos %}
+            {% if forloop.first or forloop.counter0|divisibleby:3 %}
+              <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="row justify-content-center">
+            {% endif %}
+
+            <div class="col-md-4 mb-3">
+              <div class="card h-100 shadow-sm">
+                <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}">
+                <div class="card-body text-center">
+                  <h5 class="card-title">{{ producto.nombre }}</h5>
+                  <p class="card-text">{{ producto.descripcion|truncatewords:20 }}</p>
+                  <p class="fw-bold text-primary">${{ producto.precio }}</p>
+                </div>
+              </div>
+            </div>
+
+            {% if forloop.counter|divisibleby:3 or forloop.last %}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#productosCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Anterior</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#productosCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Siguiente</span>
+        </button>
+      </div>
+    {% else %}
+      <p class="text-center">No hay productos disponibles.</p>
+    {% endif %}
+  {% endif %}
+</div>
 {% endblock %}

@@ -445,3 +445,8 @@ def enviar_alerta_stock_bajo_view(request):
     enviar_alerta_stock_bajo()
     messages.success(request, "📧 Correo de alerta enviado correctamente.")
     return redirect('dashboard')
+
+
+def index(request):
+    productos = Producto.objects.all() if not request.user.is_authenticated else None
+    return render(request, 'inventario/index.html', {'productos': productos})

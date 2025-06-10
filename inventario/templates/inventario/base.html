@@ -50,9 +50,9 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
             {% endif %}
         {% else %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'registro_usuario' %}">Registrarse</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'olvidar_contra' %}">¿Olvidaste tu contraseña?</a></li>
+            
         {% endif %}
       </ul>
 
